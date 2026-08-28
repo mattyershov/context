@@ -1,0 +1,52 @@
+{
+    "radios": [
+        {
+            "id": 0,
+            "hamlibRigNumber": 2031,
+            "name": "TS-590s",
+            "port": ""
+        }
+    ],
+
+    "antennas": [
+        {
+        "id": 0,
+        "name": "10m Dipole",
+
+        "lowerFreq": 28000,
+        "upperFreq": 29700
+        },
+
+        {
+        "id": 1,
+        "name": "15m Dipole",
+
+        "lowerFreq": 21000,
+        "upperFreq": 21450
+        },
+
+        {
+        "id": 2,
+        "name": "20m Dipole",
+
+        "lowerFreq": 14000,
+        "upperFreq": 14350
+        },
+
+        {
+        "id": 3,
+        "name": "40m Dipole",
+
+        "lowerFreq": 7000,
+        "upperFreq": 7300
+        },
+
+        {
+        "id": 4,
+        "name": "80m Delta Loop",
+
+        "lowerFreq": 3500,
+        "upperFreq": 4000
+        }
+    ]
+}
