@@ -60,13 +60,13 @@ class RadioBackend(QObject):
     freqAChanged = Signal(str)
     freqBChanged = Signal(str)
 
-    def __init__(self):
+    def __init__(self, port="dev/ttyUSB0", baud=115200):
         super().__init__()
         self._freqA = "NaN"
         self._freqB = "NaN"
 
         self.thread = QThread()
-        self.worker = RadioWorker()
+        self.worker = RadioWorker(port, baud)
 
         self.worker.moveToThread(self.thread)
 
@@ -101,8 +101,11 @@ engine = QQmlApplicationEngine()
 
 with open('station.json', 'r') as file:
     stnConfig = json.load(file)
-    port = stnConfig.get("port", "/dev/ttyUSB0") #TODO: make these fit the actual JSON structure
-    baud = stnConfig.get("baud", 115200)
+    # port = stnConfig.get("port", "/dev/ttyUSB0") #TODO: make these fit the actual JSON structure
+    # baud = stnConfig.get("baud", 115200)
+
+    port = "/dev/ttyUSB0"
+    baud = 115200
 
 radio = RadioBackend(port=port, baud=baud)
 engine.rootContext().setContextProperty("radio", radio)
