@@ -77,7 +77,7 @@ Window {
 
                 Text {
                     id: freqB
-                    text: "7003"
+                    text: radio.freqB
                     font.pointSize: 25
                     color: "#ffffff"
                     Layout.alignment: Qt.AlignHCenter
