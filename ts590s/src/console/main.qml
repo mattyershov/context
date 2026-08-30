@@ -55,7 +55,7 @@ Window {
                             } else if (radio.txFocus == "A" && radio.rxFocus == "B"){
                                 return "#ff0000"
                             }
-                            return '#ff9100'
+                            return '#000000ff'
                         }
                     }
 
@@ -69,7 +69,7 @@ Window {
                             } else if (radio.txFocus == "A"){
                                 return "#ff0000"
                             }
-                            return '#ff9100'
+                            return '#000000ff'
                         }
                     }
                 }
@@ -111,7 +111,7 @@ Window {
                             } else if (radio.txFocus == "B" && radio.rxFocus == "A"){
                                 return "#ff0000"
                             }
-                            return '#ff9100'
+                            return '#000000ff'
                         }
                     }
 
@@ -125,7 +125,7 @@ Window {
                             } else if (radio.txFocus == "B"){
                                 return "#ff0000"
                             }
-                            return '#ff9100'
+                            return '#000000ff'
                         }
                     }
                 }
