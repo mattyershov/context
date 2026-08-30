@@ -47,7 +47,7 @@ Window {
 
                     Rectangle {
                         id: focusA1
-                        width: 50
+                        width: 80
                         height: 5
                         color: {
                             if (radio.rxFocus == "A") {
@@ -61,7 +61,7 @@ Window {
 
                     Rectangle {
                         id: focusA2
-                        width: 50
+                        width: 80
                         height: 5
                         color: {
                             if (radio.rxFocus == "A" && radio.txFocus == "B") {
@@ -103,7 +103,7 @@ Window {
 
                     Rectangle {
                         id: focusB1
-                        width: 50
+                        width: 75
                         height: 5
                         color: {
                             if (radio.rxFocus == "B") {
@@ -117,7 +117,7 @@ Window {
 
                     Rectangle {
                         id: focusB2
-                        width: 50
+                        width: 75
                         height: 5
                         color: {
                             if (radio.rxFocus == "B" && radio.txFocus == "A") {

@@ -64,8 +64,8 @@ class RadioBackend(QObject):
 
     def __init__(self, port="dev/ttyUSB0", baud=115200):
         super().__init__()
-        self._freqA = "NaN"
-        self._freqB = "NaN"
+        self._freqA = "UNDEF"
+        self._freqB = "UNDEF"
         self._rxFocus = "N"
         self._txFocus = "N"
 
