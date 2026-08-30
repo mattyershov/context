@@ -6,7 +6,6 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 class RadioWorker(QObject):
-    # TODO: there is an issue with the parsing, and the parse indices are wrong.
 
     vfoAFreq = Signal(str)
     vfoBFreq = Signal(str)
