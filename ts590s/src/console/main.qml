@@ -55,6 +55,7 @@ Window {
                             } else if (radio.txFocus == "A" && radio.rxFocus == "B"){
                                 return "#ff0000"
                             }
+                            return '#ff9100'
                         }
                     }
 
@@ -68,6 +69,7 @@ Window {
                             } else if (radio.txFocus == "A"){
                                 return "#ff0000"
                             }
+                            return '#ff9100'
                         }
                     }
                 }
@@ -109,6 +111,7 @@ Window {
                             } else if (radio.txFocus == "B" && radio.rxFocus == "A"){
                                 return "#ff0000"
                             }
+                            return '#ff9100'
                         }
                     }
 
@@ -122,6 +125,7 @@ Window {
                             } else if (radio.txFocus == "B"){
                                 return "#ff0000"
                             }
+                            return '#ff9100'
                         }
                     }
                 }
@@ -138,7 +142,6 @@ Window {
 
             RowLayout {
             id: txAntennas
-            anchors.margins: 20
             spacing: 5
 
 
@@ -180,7 +183,6 @@ Window {
 
                 RowLayout {
                 id: rxAntennas
-                anchors.margins: 20
                 spacing: 5
 
 
