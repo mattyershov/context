@@ -6,6 +6,8 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 class RadioWorker(QObject):
+    # TODO: there is an issue with the parsing, and the parse indices are wrong.
+
     vfoAFreq = Signal(str)
     vfoBFreq = Signal(str)
 
@@ -17,15 +19,15 @@ class RadioWorker(QObject):
         self.port = port
         self.baud = baud
 
-    def parse(self, cmd):
-        match cmd[:2]:
+    def parse(self, buffer):
+        match buffer[:2]:
             case "FA":
                 freqA = int(buffer[2:])
-                self.vfoAFreq.emit(f"{freq / 1e3:.3f}")
+                self.vfoAFreq.emit(f"{freqA / 1e3:.3f}")
             
             case "FB":
                 freqB = int(buffer[2:])
-                self.vfoBFreq.emit(f"{freq / 1e3:.3f}")
+                self.vfoBFreq.emit(f"{freqB / 1e3:.3f}")
 
             case "FR":
                 if int(buffer[2:]) == 0:
@@ -43,11 +45,8 @@ class RadioWorker(QObject):
                 pass
 
     def run(self):
-        
-
-
         ser = serial.Serial(self.port, self.baud, timeout=1)
-        ser.write(b"AI1;") 
+        ser.write(b"AI2;") 
 
         buffer = ""
         while True:
@@ -112,7 +111,7 @@ class RadioBackend(QObject):
     def setRxFocus(self, newRxFocus):
         if self._rxFocus != newRxFocus:
             self._rxFocus = newRxFocus
-            self.rxFocusChanged.emit(_rxFocus)
+            self.rxFocusChanged.emit(self._rxFocus)
 
     def setTxFocus(self, newTxFocus):
         if self._txFocus != newTxFocus:
