@@ -49,14 +49,26 @@ Window {
                         id: focusA1
                         width: 50
                         height: 5
-                        color: '#00ff00'
+                        color: {
+                            if (radio.rxFocus == "A") {
+                                return "#00ff00"
+                            } else if (radio.txFocus == "A" && radio.rxFocus == "B"){
+                                return "#ff0000"
+                            }
+                        }
                     }
 
                     Rectangle {
                         id: focusA2
                         width: 50
                         height: 5
-                        color: '#ff0000'
+                        color: {
+                            if (radio.rxFocus == "A" && radio.txFocus == "B") {
+                                return "#00ff00"
+                            } else if (radio.txFocus == "A"){
+                                return "#ff0000"
+                            }
+                        }
                     }
                 }
                 
@@ -91,14 +103,26 @@ Window {
                         id: focusB1
                         width: 50
                         height: 5
-                        color: '#00ff00'
+                        color: {
+                            if (radio.rxFocus == "B") {
+                                return "#00ff00"
+                            } else if (radio.txFocus == "B" && radio.rxFocus == "A"){
+                                return "#ff0000"
+                            }
+                        }
                     }
 
                     Rectangle {
                         id: focusB2
                         width: 50
                         height: 5
-                        color: '#ff0000'
+                        color: {
+                            if (radio.rxFocus == "B" && radio.txFocus == "A") {
+                                return "#00ff00"
+                            } else if (radio.txFocus == "B"){
+                                return "#ff0000"
+                            }
+                        }
                     }
                 }
             }

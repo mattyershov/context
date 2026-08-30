@@ -48,16 +48,12 @@ class RadioWorker(QObject):
         ser = serial.Serial(self.port, self.baud, timeout=1)
         ser.write(b"AI2;") 
 
-        buffer = ""
         while True:
-            char = ser.read().decode('ascii', errors='ignore')
-            if char == ";":
-                self.parse(buffer)
-            else:
-                buffer += char
-
-        
-
+            byteCmd = ser.read_until(b";")
+            if byteCmd.endswith(b";"):
+                cmdAscii = byteCmd[:-1].decode('ascii', errors="ignore")
+                if cmdAscii:
+                    self.parse(cmdAscii)
 
 
 class RadioBackend(QObject):
@@ -116,7 +112,7 @@ class RadioBackend(QObject):
     def setTxFocus(self, newTxFocus):
         if self._txFocus != newTxFocus:
             self._txFocus = newTxFocus
-            self.txFocusChanged.emit(_txFocus)
+            self.txFocusChanged.emit(self._txFocus)
 
     freqA = Property(str, getVfoA, setVfoA, notify=freqAChanged)
     freqB = Property(str, getVfoB, setVfoB, notify=freqBChanged)
