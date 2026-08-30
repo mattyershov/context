@@ -35,7 +35,7 @@ Window {
 
                 Text {
                     id: freqA
-                    text: "14025"
+                    text: freqA
                     font.pointSize: 25
                     color: "#ffffff"
                     Layout.alignment: Qt.AlignHCenter
