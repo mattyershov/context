@@ -17,33 +17,34 @@ class RadioWorker(QObject):
         self.port = port
         self.baud = baud
 
+    def parse(self, cmd):
+        match cmd[:2]:
+            case "FA":
+                freqA = int(buffer[2:])
+                self.vfoAFreq.emit(f"{freq / 1e3:.3f}")
+            
+            case "FB":
+                freqB = int(buffer[2:])
+                self.vfoBFreq.emit(f"{freq / 1e3:.3f}")
+
+            case "FR":
+                if int(buffer[2:]) == 0:
+                    self.rxFocus.emit("A")
+                elif int(buffer[2:]) == 1:
+                    self.rxFocus.emit("B")
+            
+            case "FT":
+                if int(buffer[2:]) == 0:
+                    self.txFocus.emit("A")
+                elif int(buffer[2:]) == 1:
+                    self.txFocus.emit("B")
+
+            case _:
+                pass
 
     def run(self):
         
-        def parse(cmd):   
-            match cmd[:2]:
-                case "FA":
-                    freqA = int(buffer[2:])
-                    self.vfoAFreq.emit(f"{freq / 1e3:.3f}")
-                
-                case "FB":
-                    freqB = int(buffer[2:])
-                    self.vfoBFreq.emit(f"{freq / 1e3:.3f}")
 
-                case "FR":
-                    if int(buffer[2:]) == 0:
-                        self.rxFocus.emit("A")
-                    elif int(buffer[2:]) == 1:
-                        self.rxFocus.emit("B")
-                
-                case "FT":
-                    if int(buffer[2:]) == 0:
-                        self.txFocus.emit("A")
-                    elif int(buffer[2:]) == 1:
-                        self.txFocus.emit("B")
-
-                case _:
-                    pass
 
         ser = serial.Serial(self.port, self.baud, timeout=1)
         ser.write(b"AI1;") 
