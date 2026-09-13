@@ -6,7 +6,7 @@ Window {
     width: 800
     height: 480
     visible: true
-    title: "PiStationManager Console"
+    title: "Context"
     color: '#000000'
 
     ColumnLayout {
@@ -15,124 +15,172 @@ Window {
         anchors.margins: 10
         spacing: 20
 
-        RowLayout {
+        ColumnLayout {
             id: radioData
-            // anchors.margins: 20
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
             spacing: 20
 
-            ColumnLayout {
-                id: vfoA
+            RowLayout {
+                id: mainRDRow
+                // anchors.margins: 20
                 Layout.alignment: Qt.AlignHCenter
-                Text {
-                    id: vfoALabel
-                    text: "VFO A"
-                    font.pointSize: 10
-                    color: "#ffffff"
+                Layout.fillWidth: true
+                spacing: 20
+
+                ColumnLayout {
+                    id: filA
                     Layout.alignment: Qt.AlignHCenter
-                }
+                    spacing: 50
 
-                Text {
-                    id: freqA
-                    text: radio.freqA
-                    font.pointSize: 25
-                    color: "#ffffff"
-                    Layout.alignment: Qt.AlignHCenter
-                }
-                
-                RowLayout {
-                    id: focusA
-                    spacing: 0
-
-                    Rectangle {
-                        id: focusA1
-                        width: 80
-                        height: 5
-                        color: {
-                            if (radio.rxFocus == "A") {
-                                return "#00ff00"
-                            } else if (radio.txFocus == "A" && radio.rxFocus == "B"){
-                                return "#ff0000"
-                            }
-                            return '#000000ff'
-                        }
-                    }
-
-                    Rectangle {
-                        id: focusA2
-                        width: 80
-                        height: 5
-                        color: {
-                            if (radio.rxFocus == "A" && radio.txFocus == "B") {
-                                return "#00ff00"
-                            } else if (radio.txFocus == "A"){
-                                return "#ff0000"
-                            }
-                            return '#000000ff'
-                        }
+                    Text {
+                        id: filALabel
+                        text: "A"
+                        font.pointSize: 15
+                        color: "#ffffff"
+                        Layout.alignment: Qt.AlignHCenter
                     }
                 }
-                
+
+                ColumnLayout {
+                    id: vfoA
+                    Layout.alignment: Qt.AlignHCenter
+                    Text {
+                        id: vfoALabel
+                        text: "VFO A"
+                        font.pointSize: 10
+                        color: "#ffffff"
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+
+                    Text {
+                        id: freqA
+                        text: radio.freq_a
+                        font.pointSize: 25
+                        color: "#ffffff"
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+                    
+                    RowLayout {
+                        id: focusA
+                        spacing: 0
+
+                        Rectangle {
+                            id: focusA1
+                            width: 80
+                            height: 5
+                            color: {
+                                if (radio.rx_focus == "A") {
+                                    return "#00ff00"
+                                } else if (radio.tx_focus == "A" && radio.rx_focus == "B"){
+                                    return "#ff0000"
+                                }
+                                return '#000000ff'
+                            }
+                        }
+
+                        Rectangle {
+                            id: focusA2
+                            width: 80
+                            height: 5
+                            color: {
+                                if (radio.rx_focus == "A" && radio.tx_focus == "B") {
+                                    return "#00ff00"
+                                } else if (radio.tx_focus == "A"){
+                                    return "#ff0000"
+                                }
+                                return '#000000ff'
+                            }
+                        }
+                    }
+                    
+                }
+
+
+                ColumnLayout {
+                    id: vfoB
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Text {
+                        id: vfoBLabel
+                        text: "VFO B"
+                        font.pointSize: 10
+                        color: "#ffffff"
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+
+                    Text {
+                        id: freqB
+                        text: radio.freq_b
+                        font.pointSize: 25
+                        color: "#ffffff"
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+
+                    RowLayout {
+                        id: focusB
+                        spacing: 0
+
+                        Rectangle {
+                            id: focusB1
+                            width: 75
+                            height: 5
+                            color: {
+                                if (radio.rx_focus == "B") {
+                                    return "#00ff00"
+                                } else if (radio.tx_focus == "B" && radio.rx_focus == "A"){
+                                    return "#ff0000"
+                                }
+                                return '#000000ff'
+                            }
+                        }
+
+                        Rectangle {
+                            id: focusB2
+                            width: 75
+                            height: 5
+                            color: {
+                                if (radio.rx_focus == "B" && radio.tx_focus == "A") {
+                                    return "#00ff00"
+                                } else if (radio.tx_focus == "B"){
+                                    return "#ff0000"
+                                }
+                                return '#000000ff'
+                            }
+                        }
+                    }
+                }
+
+                ColumnLayout {
+                    id: filB
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing: 50
+
+                    Text {
+                        id: filBLabel
+                        text: "A"
+                        font.pointSize: 15
+                        color: "#ffffff"
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+                }
             }
 
-
-            ColumnLayout {
-                id: vfoB
+            RowLayout {
+                id: miscData
                 Layout.alignment: Qt.AlignHCenter
 
                 Text {
-                    id: vfoBLabel
-                    text: "VFO B"
-                    font.pointSize: 10
+                    id: keyApeed
+                    text: "KEY: " + radio.key_speed
                     color: "#ffffff"
-                    Layout.alignment: Qt.AlignHCenter
-                }
-
-                Text {
-                    id: freqB
-                    text: radio.freqB
-                    font.pointSize: 25
-                    color: "#ffffff"
-                    Layout.alignment: Qt.AlignHCenter
-                }
-
-                RowLayout {
-                    id: focusB
-                    spacing: 0
-
-                    Rectangle {
-                        id: focusB1
-                        width: 75
-                        height: 5
-                        color: {
-                            if (radio.rxFocus == "B") {
-                                return "#00ff00"
-                            } else if (radio.txFocus == "B" && radio.rxFocus == "A"){
-                                return "#ff0000"
-                            }
-                            return '#000000ff'
-                        }
-                    }
-
-                    Rectangle {
-                        id: focusB2
-                        width: 75
-                        height: 5
-                        color: {
-                            if (radio.rxFocus == "B" && radio.txFocus == "A") {
-                                return "#00ff00"
-                            } else if (radio.txFocus == "B"){
-                                return "#ff0000"
-                            }
-                            return '#000000ff'
-                        }
-                    }
+                    font.pointSize: 15
                 }
             }
         }
 
     
+
 
 
         ColumnLayout {
@@ -141,7 +189,7 @@ Window {
             spacing: 10
 
             RowLayout {
-            id: txAntennas
+            id: tx_antennas
             spacing: 5
 
 
@@ -182,7 +230,7 @@ Window {
             }
 
                 RowLayout {
-                id: rxAntennas
+                id: rx_antennas
                 spacing: 5
 
 

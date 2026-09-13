@@ -4,9 +4,14 @@
             "id": 0,
             "hamlibRigNumber": 2031,
             "name": "TS-590s",
-            "port": ""
+            "port": "/dev/ttyUSB0"
         }
     ],
+
+    "shuttleprov2":
+    {
+        "port": "/dev/input/by-id/usb-Contour_Design_ShuttlePRO_v2-event-mouse"
+    },
 
     "antennas": [
         {
