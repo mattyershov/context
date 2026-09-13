@@ -72,18 +72,17 @@ class RadioWorker(QObject):
 
     def run(self):
         try:
-            ser = serial.Serial(self.port, self.baud, timeout=1)
+            self.ser = serial.Serial(self.port, self.baud, timeout=0.1)
             with self._lock:
-                ser.write(b"AI2;")
+                self.ser.write(b"AI2;")
 
             while True:
-                if self.ser_in_waiting:
-                    with self._lock:
-                        byte_cmd = ser.read_until(b";")
-                        if byte_cmd.endswith(b";"):
-                            cmd_ascii = byte_cmd[:-1].decode('ascii', errors="ignore")
-                            if cmd_ascii:
-                                self.parse(cmd_ascii)
+                with self._lock:
+                    byte_cmd = self.ser.read_until(b";")
+                    if byte_cmd.endswith(b";"):
+                        cmd_ascii = byte_cmd[:-1].decode('ascii', errors="ignore")
+                        if cmd_ascii:
+                            self.parse(cmd_ascii)
         except Exception as e:
             print(f"Radio Serial Error: {e}")
 
@@ -97,6 +96,12 @@ class ShuttleProWorker(QObject):  # Fixed base class typo Qobject -> QObject
     def __init__(self, spv2_path="/dev/input/by-id/usb-Contour_Design_ShuttlePRO_v2-event-mouse"):
         super().__init__()
         self.spv2_path = spv2_path  # TODO: load from JSON or use list_devices()
+        self._last_jog_pos = None
+
+    @staticmethod
+    def _to_signed_8bit(val):
+        """Converts Linux evdev unsigned 8-bit byte (0..255) to signed int (-128..127)."""
+        return val - 256 if val > 127 else val
 
     def run(self):
         if not self.spv2_path:
@@ -107,9 +112,21 @@ class ShuttleProWorker(QObject):  # Fixed base class typo Qobject -> QObject
             spv2.grab()
 
             for event in spv2.read_loop():
-                # Jog relative movement
                 if event.type == ecodes.EV_REL and event.code == ecodes.REL_DIAL:
-                    self.jog_moved.emit(event.value)
+                    delta = self._to_signed_8bit(event.value)
+                    if delta != 0:
+                        self.jog_moved.emit(event.value)
+
+                elif event.type == ecodes.EV_ABS and event.code in (ecodes.ABS_DIAL, ecodes.REL_DIAL):
+                    current_pos = event.value
+
+                    if self._last_jog_pos != None:
+
+                        delta = self._to_signed_8bit((curr - self._last_jog_pos) & 0xFF)
+                        if delta != 0:
+                            self.jog_moved.emit(delta)
+
+                    self._last_jog_pos = current_pos
 
                 # Shuttle abs position
                 elif event.type == ecodes.EV_ABS and event.code == ecodes.ABS_THROTTLE:
@@ -127,8 +144,8 @@ class ShuttleProWorker(QObject):  # Fixed base class typo Qobject -> QObject
 
 
 class RadioBackend(QObject):
-    freq_a_changed = Signal(float)
-    freq_b_changed = Signal(float)
+    freq_a_changed = Signal(str)
+    freq_b_changed = Signal(str)
     rx_focus_changed = Signal(str)
     tx_focus_changed = Signal(str)
     key_speed_changed = Signal(str)
@@ -137,8 +154,8 @@ class RadioBackend(QObject):
 
     def __init__(self, port="/dev/ttyUSB0", baud=115200):
         super().__init__()
-        self._freq_a = 00000.000
-        self._freq_b = 00000.000
+        self._freq_a = "00000.000"
+        self._freq_b = "00000.000"
         self._rx_focus = "N"
         self._tx_focus = "N"
         self._key_speed = "N"
@@ -231,9 +248,10 @@ class RadioBackend(QObject):
         
         #TODO: Add a setting to set the mode of the shuttle and jog (main or opposite VFO)
         if self.get_rx_focus() == "A":
-            self.set_vfo_b(self._freq_b + float(step * tuning_step))
+            print(step)
+            self.set_vfo_b(str(float(self._freq_b) + float(step * tuning_step)))
         elif self.get_rx_focus() == "B":
-            self.set_vfo_a(self._freq_a + float(step * tuning_step))
+            self.set_vfo_a(str(float(self._freq_a) + float(step * tuning_step)))
 
     def handle_shuttle(self, pos):
         if pos == 0:
@@ -244,9 +262,9 @@ class RadioBackend(QObject):
             accel_rate = -(pos ** 2) * 500
 
         if self.get_rx_focus() == "A":
-            self.set_vfo_b(self._freq_b + float(accel_rate))
+            self.set_vfo_b(str(float(self._freq_b) + float(accel_rate)))
         elif self.get_rx_focus() == "B":
-            self.set_vfo_a(self._freq_a + float(accel_rate))
+            self.set_vfo_a(str(float(self._freq_a) + float(accel_rate)))
 
     def handle_button(self, button):
         id, status = button[0], button[1]
@@ -260,8 +278,8 @@ class RadioBackend(QObject):
             case _:
                 return
 
-    freq_a = Property(float, get_vfo_a, set_vfo_a, notify=freq_a_changed)
-    freq_b = Property(float, get_vfo_b, set_vfo_b, notify=freq_b_changed)
+    freq_a = Property(str, get_vfo_a, set_vfo_a, notify=freq_a_changed)
+    freq_b = Property(str, get_vfo_b, set_vfo_b, notify=freq_b_changed)
     rx_focus = Property(str, get_rx_focus, set_rx_focus, notify=rx_focus_changed)
     tx_focus = Property(str, get_tx_focus, set_tx_focus, notify=tx_focus_changed)
     key_speed = Property(str, get_key_speed, set_key_speed, notify=key_speed_changed)
