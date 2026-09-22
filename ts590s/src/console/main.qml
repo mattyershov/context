@@ -165,18 +165,6 @@ Window {
                     }
                 }
             }
-
-            RowLayout {
-                id: miscData
-                Layout.alignment: Qt.AlignHCenter
-
-                Text {
-                    id: keyApeed
-                    text: "KEY: " + radio.key_speed
-                    color: "#ffffff"
-                    font.pointSize: 15
-                }
-            }
         }
 
     

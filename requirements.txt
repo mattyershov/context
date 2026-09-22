@@ -1,4 +1,4 @@
-hamlib==0.0.1
+evdev==2.0.0
 pyserial==3.5
 PySide6==6.11.2
 PySide6_Addons==6.11.2
