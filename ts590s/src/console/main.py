@@ -22,6 +22,7 @@ class RadioWorker(QObject):
     vfo_a_fil = Signal(str)  # {A, B}
     vfo_b_fil = Signal(str)  # {A, B}
     nr_status = Signal(int)  # {0, 1, 2} (NR is independent of VFO focus)
+    mode = Signal(str)
 
     def __init__(self, port, baud):
         super().__init__()
@@ -61,11 +62,22 @@ class RadioWorker(QObject):
                     self.tx_focus.emit("B")
 
             case "NR":  # Noise Reduction status
-                if int(buffer[2:]) == 0:
-                    self.nr_status.emit(0)
-                elif int(buffer[2:]) == 1:
-                    self.nr_status.emit(1)
-
+                self.nr_status.emit(int(buffer[2:]))
+            
+            case "MD": # Mode (differentiation of VFO A vs. B happens later, in RadioBackend)
+                mode = ""
+                match int(buffer[2:]):
+                    case 1:
+                        mode = "LSB"
+                    case 2:
+                        mode = "USB"
+                    case 3:
+                        mode = "CW"
+                    case 7:
+                        mode = "CW-R"
+                    case _:
+                        mode = "N"
+                self.mode.emit(mode)
             case _:
                 pass
 
@@ -151,6 +163,8 @@ class RadioBackend(QObject):
     rx_focus_changed = Signal(str)
     tx_focus_changed = Signal(str)
     nr_status_changed = Signal(int)
+    mode_a_changed = Signal(str)
+    mode_b_changed = Signal(str)
     send_cat_cmd = Signal(str)
 
     def __init__(self, port="/dev/ttyUSB0", baud=115200):
@@ -160,6 +174,10 @@ class RadioBackend(QObject):
         self._rx_focus = "N"
         self._tx_focus = "N"
         self._nr_status = 0
+        self._mode_a = "CW"
+        self._mode_b = "CW"
+
+        self._split_count = 1
 
         self.radio_thread = QThread()
         self.shuttlepro_thread = QThread()
@@ -170,16 +188,15 @@ class RadioBackend(QObject):
         self.radio_worker.moveToThread(self.radio_thread)
         self.shuttlepro_worker.moveToThread(self.shuttlepro_thread)
 
-
         self.radio_thread.started.connect(self.radio_worker.run)
         self.shuttlepro_thread.started.connect(self.shuttlepro_worker.run)
-
 
         self.radio_worker.vfo_a_freq.connect(self.set_vfo_a)
         self.radio_worker.vfo_b_freq.connect(self.set_vfo_b)
         self.radio_worker.rx_focus.connect(self.set_rx_focus)
         self.radio_worker.tx_focus.connect(self.set_tx_focus)
         self.radio_worker.nr_status.connect(self.set_nr_status)
+        self.radio_worker.mode.connect(self.set_mode)
 
         self.shuttlepro_worker.jog_moved.connect(self.handle_jog)
         # self.shuttlepro_worker.shuttle_moved.connect(self.handle_shuttle)
@@ -205,6 +222,12 @@ class RadioBackend(QObject):
     def get_nr_status(self):
         return self._nr_status
 
+    def get_mode_a(self):
+        return self._mode_a
+
+    def get_mode_b(self):
+        return self._mode_b
+
     def set_vfo_a(self, new_freq):
         if self._freq_a != new_freq:
             self._freq_a = new_freq
@@ -214,7 +237,6 @@ class RadioBackend(QObject):
         if self._freq_b != new_freq:
             self._freq_b = new_freq
             self.freq_b_changed.emit(self._freq_b)
-
 
     def set_rx_focus(self, new_rx_focus):
         if self._rx_focus != new_rx_focus:
@@ -230,6 +252,18 @@ class RadioBackend(QObject):
         if self._nr_status != new_nr_status:
             self._nr_status = new_nr_status
             self.nr_status_changed.emit(self._nr_status)
+    
+    def set_mode(self, new_mode):
+        if self._rx_focus == "A":
+            if self._mode_a != new_mode:
+                self._mode_a = new_mode
+                self.mode_a_changed.emit(self.mode_a)
+
+        elif self._rx_focus == "B":
+            if self._mode_b != new_mode:
+                self._mode_b = new_mode
+                self.mode_b_changed.emit(self.mode_b)
+        
 
     def send_cmd(self, cmd):
         self.radio_worker.send_cmd(cmd)
@@ -256,14 +290,14 @@ class RadioBackend(QObject):
     def split_macro(self, status):
         if status == 1:
             # Assuming running on B and S&Ping on A
-            self.send_cmd("FT1") # Turn on split to listen to unidentified signal while maintaining run freq
+            self.send_cmd("FR0;FT1") # Turn on split to listen to unidentified signal while maintaining run freq
         elif status == 2:
             self.send_cmd("FR0") # Then, set TX and RX to A to work mult
-        elif status == 0:
+        elif status == 3:
             self.send_cmd("FR1") # Cancel split if someone responds to your CQ call
 
 
-    '''Shuttle (currently not in use; may not be practical):'''
+    # Shuttle (currently not in use; may not be practical):
 
     # def handle_shuttle(self, pos):
     #     new_freq = None
@@ -290,9 +324,9 @@ class RadioBackend(QObject):
 
     def handle_button(self, button):
         id, status = button[0], button[1]
-        split_count = 1
 
         match id:
+
             case 260:
                 # Swap A and B
                 if status == 1:
@@ -301,17 +335,23 @@ class RadioBackend(QObject):
                     self.send_cmd(f"FA{int(temp_freq_b * 1000):011d}")
                     print("swap")
 
+            case 261:
+                # Throw A
+                if status == 1:
+                    self.send_cmd("FR0")
+                    self._split_count = 0
+            
+            case 263:
+                # Throw B
+                if status == 1:
+                    self.send_cmd("FR1")
+                    self._split_count = 0
+
             case 262:
                 # Noise reduction mode TODO: fix toggle logic
                 if status == 1:
-                    if self._nr_status == 0 or self._nr_status == 1:
-                        new_nr_status = (self._nr_status + 1) % 2
-                    else:
-                        new_nr_status = 0
-                    self.send_cmd(f"NR{new_nr_status}")
-                    print(new_nr_status)
+                    self.send_cmd(f"NR{(self.nr_status + 1) % 3}")
                     
-
             case 268:
                 # TF-SET
                 self.send_cmd(f"TS{status}")
@@ -319,19 +359,35 @@ class RadioBackend(QObject):
             case 266:
                 # Split Macro stages
                 if status == 1:
-                    if split_count <= 2:
-                        self.split_macro(split_count)
-                        print(split_count)
-                        split_count += 1
-                    else:
-                        split_count = 1
+                    if self._split_count > 3:
+                        self._split_count = 1
+                    self.split_macro(self._split_count)
+                    print(self._split_count)
+                    self._split_count += 1
 
             case 264:
                 # Cancel Split Macro
                 if status == 1:
-                    split_count = 0
-                    self.split_macro(0)
+                    self.split_macro(3)
+                    self._split_count = 1
                     
+            case 270:
+                # CW/CW-R
+                if status == 1:
+
+                    if self.get_rx_focus() == "A":
+                        if self._mode_a == "CW":
+                            self.send_cmd("MD7")
+                            print("MD7")
+                        elif self._mode_a == "CW-R":
+                            self.send_cmd("MD3")
+
+                    elif self.get_rx_focus() == "B":
+                        if self._mode_b == "CW":
+                            self.send_cmd("MD7")
+                            print("MD7")
+                        elif self._mode_b == "CW-R":
+                            self.send_cmd("MD3")
 
             case _:
                 return
@@ -341,6 +397,8 @@ class RadioBackend(QObject):
     rx_focus = Property(str, get_rx_focus, set_rx_focus, notify=rx_focus_changed)
     tx_focus = Property(str, get_tx_focus, set_tx_focus, notify=tx_focus_changed)
     nr_status = Property(int, get_nr_status, set_nr_status, notify=nr_status_changed)
+    mode_a = Property(str, get_mode_a, set_mode, notify=mode_a_changed)
+    mode_b = Property(str, get_mode_b, set_mode, notify=mode_b_changed)
 
 
 app = QGuiApplication(sys.argv)
