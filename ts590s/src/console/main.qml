@@ -13,11 +13,11 @@ Window {
         id: mainLayout
         anchors.fill: parent
         anchors.margins: 10
-        spacing: 20
+        spacing: 0
 
         ColumnLayout {
             id: radioData
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
             Layout.fillWidth: true
             spacing: 20
 
@@ -25,20 +25,46 @@ Window {
                 id: mainRDRow
                 // anchors.margins: 20
                 Layout.alignment: Qt.AlignHCenter
-                Layout.fillWidth: true
                 spacing: 20
 
-                ColumnLayout {
-                    id: filA
-                    Layout.alignment: Qt.AlignHCenter
-                    spacing: 50
+                Text {
+                    id: modeA
+                    text: radio.mode_a
+                    font.pointSize: 15
+                    color: {
+                        switch (radio.mode_a) {
+                            case "CW":
+                                return '#00ff00'
 
+                            case "CW-R":
+                                return '#ff7300'
+
+                            case "LSB" || "USB":
+                                return '#006eff'
+
+                            default:
+                                return "#ffffff"
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: filA
+                    width: 50
+                    height: 30
+                    color:{
+                        if (radio.fil_a == "A"){
+                            return '#0066ff'
+                        } else if (radio.fil_a == "B") {
+                            return '#ff0000'
+                        } else return '#000000'
+                    }
                     Text {
-                        id: filALabel
-                        text: "A"
+                        id: filAText
+                        text: radio.fil_a
                         font.pointSize: 15
                         color: "#ffffff"
-                        Layout.alignment: Qt.AlignHCenter
+                        anchors.centerIn: parent
                     }
                 }
 
@@ -92,8 +118,7 @@ Window {
                                 return '#000000ff'
                             }
                         }
-                    }
-                    
+                    }           
                 }
 
 
@@ -150,114 +175,191 @@ Window {
                         }
                     }
                 }
-
-                ColumnLayout {
+                Rectangle {
                     id: filB
-                    Layout.alignment: Qt.AlignHCenter
-                    spacing: 50
-
+                    width: 50
+                    height: 30
+                    color:{
+                        if (radio.fil_b == "A"){
+                            return '#0066ff'
+                        } else if (radio.fil_b == "B") {
+                            return '#ff0000'
+                        } else return '#000000'
+                    }
                     Text {
-                        id: filBLabel
-                        text: "A"
+                        id: filBText
+                        text: radio.fil_b
                         font.pointSize: 15
                         color: "#ffffff"
-                        Layout.alignment: Qt.AlignHCenter
+                        anchors.centerIn: parent
+
                     }
                 }
-            }
-        }
 
-    
-
-
-
-        ColumnLayout {
-            id: antennas
-            anchors.margins: 20
-            spacing: 10
-
-            RowLayout {
-            id: tx_antennas
-            spacing: 5
-
-
-
-                Button {
-                    id: ant1
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 80
-                    text: "ANT 1"
+                Text {
+                    id: modeB
+                    text: radio.mode_b
                     font.pointSize: 15
+                    color: {
+                        switch (radio.mode_b) {
+                            case "CW":
+                                return '#00ff00'
 
-                    background: Rectangle {
-                        color: ant1.down ? "#388e3c" : "#4caf50"
-                        // radius: 8
-                    }
+                            case "CW-R":
+                                return '#ff7300'
 
-                    onClicked: {
-                        console.log("ANT 1 Selected")
-                    }
-                }
+                            case "LSB" || "USB":
+                                return '#006eff'
 
-                Button {
-                    id: ant2
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 80
-                    text: "ANT 2"
-                    font.pointSize: 15
-
-                    background: Rectangle {
-                        color: ant2.down ? "#388e3c" : "#4caf50"
-                        // radius: 8
-                    }
-
-                    onClicked: {
-                        console.log("ANT 2 Selected")
-                    }
-                }
-            }
-
-                RowLayout {
-                id: rx_antennas
-                spacing: 5
-
-
-
-                    Button {
-                        id: rxAnt1
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 80
-                        text: "RX ANT 1"
-                        font.pointSize: 15
-
-                        background: Rectangle {
-                            color: rxAnt1.down ? "#2049a1" : "#1652c2"
-                            // radius: 8
-                        }
-
-                        onClicked: {
-                            console.log("RX ANT 1 Selected")
-                        }
-                    }
-
-                    Button {
-                        id: rxAnt2
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 80
-                        text: "RX ANT 2"
-                        font.pointSize: 15
-
-                        background: Rectangle {
-                            color: rxAnt2.down ? '#2049a1' : '#1652c2'
-                            // radius: 8
-                        }
-
-                        onClicked: {
-                            console.log("RX ANT 2 Selected")
+                            default:
+                                return "#ffffff"
                         }
                     }
                 }
                 
+            }
+        }
+
+        RowLayout {
+            id: midSection
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillHeight: true
+
+            RowLayout {
+                id: smIndicators
+                Layout.fillWidth: false
+                spacing: 0
+
+                Rectangle {
+                    id: smListenIndicator
+                    implicitHeight: 50
+                    implicitWidth: 50
+                    Layout.fillWidth: true
+                    border.width: 3
+                    border.color: "#00f7ff"
+                    color: radio.sm_status === "LISTEN" ? "#00f7ff" : "#000000"
+
+                    Text {
+                        id: smListenText
+                        anchors.centerIn: parent
+                        text: "L"
+                        color: radio.sm_status === "LISTEN" ? "#000000" : "#00f7ff"
+                        font.pointSize: 14
+                    }
+                }
+
+                    Rectangle {
+                    id: molIndicator
+                    implicitHeight: 50
+                    implicitWidth: 50
+                    Layout.fillWidth: true
+                    border.width: 3
+                    border.color: '#ff0000'
+                    color: radio.mol_status == 1 ? '#ff0000' : "#000000"
+
+                    Text {
+                        id: molText
+                        anchors.centerIn: parent
+                        text: "M"
+                        color: radio.mol_status == 1 ? "#000000" : '#ff0000'
+                        font.pointSize: 14
+                    }
+                }
+
+                Rectangle {
+                    id: smWorkIndicator
+                    implicitHeight: 50
+                    implicitWidth: 50
+                    Layout.fillWidth: true
+                    border.width: 3
+                    border.color: '#ffffff'
+                    color: radio.sm_status === "WORK" ? '#ffffff' : "#000000"
+
+                    Text {
+                        id: smWorkText
+                        anchors.centerIn: parent
+                        text: "W"
+                        color: radio.sm_status === "WORK" ? "#000000" : "#ffffff"
+                        font.pointSize: 14
+                    }
+                }
+            }
+        }
+        RowLayout {
+            id: bottomIndicators
+            implicitHeight: 50
+            Layout.fillWidth: true
+            spacing: 0
+            Layout.alignment: Qt.AlignBottom
+
+            Rectangle {
+                id: preAmpIndicator
+                implicitHeight: 50
+                implicitWidth: 100
+                Layout.fillWidth: true
+                border.width: 3
+                border.color: '#00ff20'
+                color: radio.mol_status == 1 ? '#00ff20' : "#000000"
+
+                Text {
+                    id: preAmpText
+                    anchors.centerIn: parent
+                    text: "PRE"
+                    color: radio.mol_status == 1 ? "#000000" : '#00ff20'
+                    font.pointSize: 14
+                }
+            }
+            Rectangle {
+                id: attIndicator
+                implicitHeight: 50
+                implicitWidth: 100
+                Layout.fillWidth: true
+                border.width: 3
+                border.color: '#00ff20'
+                color: radio.mol_status == 1 ? '#00ff20' : "#000000"
+
+                Text {
+                    id: attText
+                    anchors.centerIn: parent
+                    text: "ATT"
+                    color: radio.mol_status == 1 ? "#000000" : '#00ff20'
+                    font.pointSize: 14
+                }
+            }
+            Rectangle {
+                id: nrIndicator
+                implicitHeight: 50
+                implicitWidth: 100
+                Layout.fillWidth: true
+                border.width: 3
+                border.color: '#00ff20'
+                color: radio.mol_status == 1 ? '#00ff20' : "#000000"
+
+                Text {
+                    id: nrText
+                    anchors.centerIn: parent
+                    text: "NR"
+                    color: radio.mol_status == 1 ? "#000000" : '#00ff20'
+                    font.pointSize: 14
+                }
+            }
+            Rectangle {
+                id: esmIndicator
+                implicitHeight: 50
+                implicitWidth: 100
+                Layout.fillWidth: true
+                border.width: 3
+                border.color: '#00ff20'
+                color: radio.mol_status == 1 ? '#00ff20' : "#000000"
+
+                Text {
+                    id: esmText
+                    anchors.centerIn: parent
+                    text: "ESM"
+                    color: radio.mol_status == 1 ? "#000000" : '#00ff20'
+                    font.pointSize: 14
+                }
+            }
         }
     }
 }
