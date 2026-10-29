@@ -80,9 +80,9 @@ class RadioWorker(QObject):
 
             case "FL":
                 if int(buffer[2:]) == 0:
-                    self.vfo_a_fil.emit("A")
+                    self.fil.emit("A")
                 elif int(buffer[2:]) == 1:
-                    self.tx_focus.emit("B")
+                    self.fil.emit("B")
             case _:
                 pass
 
@@ -293,13 +293,13 @@ class RadioBackend(QObject):
 
     def set_fil(self, new_fil):
         if self._rx_focus == "A":
-            if self._fil_a != new_mode:
-                self._fil_a = new_mode
+            if self._fil_a != new_fil:
+                self._fil_a = new_fil
                 self.fil_a_changed.emit(self._fil_a)
 
         elif self._rx_focus == "B":
-            if self._fil_b != new_mode:
-                self._fil_b = new_mode
+            if self._fil_b != new_fil:
+                self._fil_b = new_fil
                 self.fil_b_changed.emit(self._fil_b)
 
     def set_sm_status(self, new_status):
@@ -377,13 +377,12 @@ class RadioBackend(QObject):
 
         match id:
 
-            case 260:
+            case 264:
                 # Swap A and B
                 if status == 1:
                     temp_freq_b = float(self._freq_b)
                     self.send_cmd(f"FB{int(float(self._freq_a) * 1000):011d}")
                     self.send_cmd(f"FA{int(temp_freq_b * 1000):011d}")
-                    print("swap")
 
             case 261:
                 # Throw A
@@ -401,13 +400,19 @@ class RadioBackend(QObject):
                 if status == 1:
                     self.send_cmd(f"NR{(self.nr_status + 1) % 3}")
                     
-            case 268:
+            case 267:
                 # MOL
-                self.send_cmd(f"TS{status}")
+                if self._rx_focus != self._tx_focus:
+                    self.send_cmd(f"TS{status}")
+                else:
+                    temp_freq_b = float(self._freq_b)
+                    self.send_cmd(f"FB{int(float(self._freq_a) * 1000):011d}")
+                    self.send_cmd(f"FA{int(temp_freq_b * 1000):011d}")
+                    
                 self._mol_status = status
 
 
-            case 266:
+            case 265:
                 # Split Macro stages
                 if status == 1:
                     if self._split_count > 3:
@@ -417,14 +422,14 @@ class RadioBackend(QObject):
                         self._sm_status = "N"
                     self._split_count += 1
 
-            case 264:
+            case 260:
                 # Cancel Split Macro
                 if status == 1:
                     self.split_macro(3)
                     self._split_count = 1
                     self._sm_status = "N"
                     
-            case 270:
+            case 269:
                 # CW/CW-R
                 if status == 1:
 
