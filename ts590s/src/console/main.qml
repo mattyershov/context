@@ -224,65 +224,112 @@ Window {
             id: midSection
             Layout.alignment: Qt.AlignHCenter
             Layout.fillHeight: true
-
-            RowLayout {
-                id: smIndicators
-                Layout.fillWidth: false
-                spacing: 0
-
-                Rectangle {
-                    id: smListenIndicator
-                    implicitHeight: 50
-                    implicitWidth: 50
-                    Layout.fillWidth: true
-                    border.width: 3
-                    border.color: "#00f7ff"
-                    color: radio.sm_status === "LISTEN" ? "#00f7ff" : "#000000"
-
-                    Text {
-                        id: smListenText
-                        anchors.centerIn: parent
-                        text: "L"
-                        color: radio.sm_status === "LISTEN" ? "#000000" : "#00f7ff"
-                        font.pointSize: 14
-                    }
-                }
+        
+            ColumnLayout {
+                id: midCenterColumn
+                spacing: 20
+            
+                RowLayout {
+                    id: smIndicators
+                    Layout.fillWidth: false
+                    spacing: 0
 
                     Rectangle {
-                    id: molIndicator
-                    implicitHeight: 50
-                    implicitWidth: 50
-                    Layout.fillWidth: true
-                    border.width: 3
-                    border.color: '#ff0000'
-                    color: radio.mol_status == 1 ? '#ff0000' : "#000000"
+                        id: smListenIndicator
+                        implicitHeight: 50
+                        implicitWidth: 50
+                        Layout.fillWidth: true
+                        border.width: 3
+                        border.color: "#00f7ff"
+                        color: radio.sm_status === "LISTEN" ? "#00f7ff" : "#000000"
 
-                    Text {
-                        id: molText
-                        anchors.centerIn: parent
-                        text: "M"
-                        color: radio.mol_status == 1 ? "#000000" : '#ff0000'
-                        font.pointSize: 14
+                        Text {
+                            id: smListenText
+                            anchors.centerIn: parent
+                            text: "L"
+                            color: radio.sm_status === "LISTEN" ? "#000000" : "#00f7ff"
+                            font.pointSize: 14
+                        }
+                    }
+
+                        Rectangle {
+                        id: molIndicator
+                        implicitHeight: 50
+                        implicitWidth: 50
+                        Layout.fillWidth: true
+                        border.width: 3
+                        border.color: '#ff0000'
+                        color: radio.mol_status == 1 ? '#ff0000' : "#000000"
+
+                        Text {
+                            id: molText
+                            anchors.centerIn: parent
+                            text: "M"
+                            color: radio.mol_status == 1 ? "#000000" : '#ff0000'
+                            font.pointSize: 14
+                        }
+                    }
+
+                    Rectangle {
+                        id: smWorkIndicator
+                        implicitHeight: 50
+                        implicitWidth: 50
+                        Layout.fillWidth: true
+                        border.width: 3
+                        border.color: '#ffffff'
+                        color: radio.sm_status === "WORK" ? '#ffffff' : "#000000"
+
+                        Text {
+                            id: smWorkText
+                            anchors.centerIn: parent
+                            text: "W"
+                            color: radio.sm_status === "WORK" ? "#000000" : "#ffffff"
+                            font.pointSize: 14
+                        }
                     }
                 }
 
-                Rectangle {
-                    id: smWorkIndicator
-                    implicitHeight: 50
-                    implicitWidth: 50
-                    Layout.fillWidth: true
-                    border.width: 3
-                    border.color: '#ffffff'
-                    color: radio.sm_status === "WORK" ? '#ffffff' : "#000000"
+                ColumnLayout {
+                    id: jogMode
+                    Layout.fillWidth: false
 
-                    Text {
-                        id: smWorkText
-                        anchors.centerIn: parent
-                        text: "W"
-                        color: radio.sm_status === "WORK" ? "#000000" : "#ffffff"
-                        font.pointSize: 14
+                    Rectangle {
+                        id: jogOppFreq
+                        implicitHeight: 50
+                        implicitWidth: 150
+                        Layout.fillWidth: true
+                        border.width: 3
+                        border.color: '#ff0000'
+                        color: radio.jog_mode == 1 ? '#ff0000' : '#000000'
+
+                        Text {
+                            id: jogOppFreqText
+                            anchors.centerIn: parent
+                            text: "Opp Freq"
+                            color: radio.sm_status == 1 ? '#000000' : '#ff0000'
+                            font.pointSize: 14
+                        }
+                    }
+
+                        Rectangle {
+                        id: jogMainFreq
+                        implicitHeight: 50
+                        implicitWidth: 150
+                        Layout.fillWidth: true
+                        border.width: 3
+                        border.color: '#ff0000'
+                        color: radio.mol_status == 1 ? '#ff0000' : "#000000"
+
+                        Text {
+                            id: jogMainFreqText
+                            anchors.centerIn: parent
+                            text: "Main Freq"
+                            color: radio.mol_status == 1 ? "#000000" : '#ff0000'
+                            font.pointSize: 14
+                        }
                     }
                 }
+
             }
         }
         RowLayout {
