@@ -228,66 +228,6 @@ Window {
             ColumnLayout {
                 id: midCenterColumn
                 spacing: 20
-            
-                RowLayout {
-                    id: smIndicators
-                    Layout.fillWidth: false
-                    spacing: 0
-
-                    Rectangle {
-                        id: smListenIndicator
-                        implicitHeight: 50
-                        implicitWidth: 50
-                        Layout.fillWidth: true
-                        border.width: 3
-                        border.color: "#00f7ff"
-                        color: radio.sm_status === "LISTEN" ? "#00f7ff" : "#000000"
-
-                        Text {
-                            id: smListenText
-                            anchors.centerIn: parent
-                            text: "L"
-                            color: radio.sm_status === "LISTEN" ? "#000000" : "#00f7ff"
-                            font.pointSize: 14
-                        }
-                    }
-
-                        Rectangle {
-                        id: molIndicator
-                        implicitHeight: 50
-                        implicitWidth: 50
-                        Layout.fillWidth: true
-                        border.width: 3
-                        border.color: '#ff0000'
-                        color: radio.mol_status == 1 ? '#ff0000' : "#000000"
-
-                        Text {
-                            id: molText
-                            anchors.centerIn: parent
-                            text: "M"
-                            color: radio.mol_status == 1 ? "#000000" : '#ff0000'
-                            font.pointSize: 14
-                        }
-                    }
-
-                    Rectangle {
-                        id: smWorkIndicator
-                        implicitHeight: 50
-                        implicitWidth: 50
-                        Layout.fillWidth: true
-                        border.width: 3
-                        border.color: '#ffffff'
-                        color: radio.sm_status === "WORK" ? '#ffffff' : "#000000"
-
-                        Text {
-                            id: smWorkText
-                            anchors.centerIn: parent
-                            text: "W"
-                            color: radio.sm_status === "WORK" ? "#000000" : "#ffffff"
-                            font.pointSize: 14
-                        }
-                    }
-                }
 
                 ColumnLayout {
                     id: jogMode
@@ -300,13 +240,13 @@ Window {
                         Layout.fillWidth: true
                         border.width: 3
                         border.color: '#ff0000'
-                        color: radio.jog_mode == 1 ? '#ff0000' : '#000000'
+                        color: radio.jog_mode == 0 ? '#ff0000' : '#000000'
 
                         Text {
                             id: jogOppFreqText
                             anchors.centerIn: parent
                             text: "Opp Freq"
-                            color: radio.sm_status == 1 ? '#000000' : '#ff0000'
+                            color: radio.jog_mode == 0 ? '#000000' : '#ff0000'
                             font.pointSize: 14
                         }
                     }
@@ -318,94 +258,18 @@ Window {
                         Layout.fillWidth: true
                         border.width: 3
                         border.color: '#ff0000'
-                        color: radio.mol_status == 1 ? '#ff0000' : "#000000"
+                        color: radio.jog_mode == 1 ? '#ff0000' : "#000000"
 
                         Text {
                             id: jogMainFreqText
                             anchors.centerIn: parent
                             text: "Main Freq"
-                            color: radio.mol_status == 1 ? "#000000" : '#ff0000'
+                            color: radio.jog_mode == 1 ? "#000000" : '#ff0000'
                             font.pointSize: 14
                         }
                     }
                 }
 
-            }
-        }
-        RowLayout {
-            id: bottomIndicators
-            implicitHeight: 50
-            Layout.fillWidth: true
-            spacing: 0
-            Layout.alignment: Qt.AlignBottom
-
-            Rectangle {
-                id: preAmpIndicator
-                implicitHeight: 50
-                implicitWidth: 100
-                Layout.fillWidth: true
-                border.width: 3
-                border.color: '#00ff20'
-                color: radio.mol_status == 1 ? '#00ff20' : "#000000"
-
-                Text {
-                    id: preAmpText
-                    anchors.centerIn: parent
-                    text: "PRE"
-                    color: radio.mol_status == 1 ? "#000000" : '#00ff20'
-                    font.pointSize: 14
-                }
-            }
-            Rectangle {
-                id: attIndicator
-                implicitHeight: 50
-                implicitWidth: 100
-                Layout.fillWidth: true
-                border.width: 3
-                border.color: '#00ff20'
-                color: radio.mol_status == 1 ? '#00ff20' : "#000000"
-
-                Text {
-                    id: attText
-                    anchors.centerIn: parent
-                    text: "ATT"
-                    color: radio.mol_status == 1 ? "#000000" : '#00ff20'
-                    font.pointSize: 14
-                }
-            }
-            Rectangle {
-                id: nrIndicator
-                implicitHeight: 50
-                implicitWidth: 100
-                Layout.fillWidth: true
-                border.width: 3
-                border.color: '#00ff20'
-                color: radio.mol_status == 1 ? '#00ff20' : "#000000"
-
-                Text {
-                    id: nrText
-                    anchors.centerIn: parent
-                    text: "NR"
-                    color: radio.mol_status == 1 ? "#000000" : '#00ff20'
-                    font.pointSize: 14
-                }
-            }
-            Rectangle {
-                id: esmIndicator
-                implicitHeight: 50
-                implicitWidth: 100
-                Layout.fillWidth: true
-                border.width: 3
-                border.color: '#00ff20'
-                color: radio.mol_status == 1 ? '#00ff20' : "#000000"
-
-                Text {
-                    id: esmText
-                    anchors.centerIn: parent
-                    text: "ESM"
-                    color: radio.mol_status == 1 ? "#000000" : '#00ff20'
-                    font.pointSize: 14
-                }
             }
         }
     }

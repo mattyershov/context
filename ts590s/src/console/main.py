@@ -172,7 +172,6 @@ class RadioBackend(QObject):
     mode_b_changed = Signal(str)
     fil_a_changed = Signal(str)
     fil_b_changed = Signal(str)
-    sm_status_changed = Signal(str)
     mol_status_changed = Signal(int)
     jog_mode_changed = Signal(int)
 
@@ -189,7 +188,6 @@ class RadioBackend(QObject):
         self._mode_b = "N"
         self._fil_a = "N"
         self._fil_b = "N"
-        self._sm_status = "N"
         self._mol_status = 0
 
         self._split_count = 1
@@ -251,9 +249,6 @@ class RadioBackend(QObject):
     def get_fil_b(self):
         return self._fil_b
 
-    def get_sm_status(self):
-        return self._sm_status
-
     def get_mol_status(self):
         return self._mol_status
 
@@ -306,11 +301,6 @@ class RadioBackend(QObject):
             if self._fil_b != new_fil:
                 self._fil_b = new_fil
                 self.fil_b_changed.emit(self._fil_b)
-
-    def set_sm_status(self, new_status):
-        if self._sm_status != new_status:
-            self._sm_status = new_status
-            self.sm_status_changed.emit(self._sm_status)
     
     def set_mol_status(self, new_status):
         if self._mol_status != new_status:
@@ -327,26 +317,26 @@ class RadioBackend(QObject):
 
     def handle_jog(self, jog_step):
         match self._jog_mode: 
-            case 1: # Opposite VFO
-                tuning_step = 0.01 # 10 Hz
+            case 0: # Opposite VFO
+                tuning_step = 0.02 # 20 Hz
                 target_vfo = None
                 new_freq = None
                 
                 if self._rx_focus == "A":
-                    new_freq = round((float(self._freq_a)) + float(tuning_step * jog_step), 3)
+                    new_freq = round((float(self._freq_b)) + float(tuning_step * jog_step), 3)
 
-                    self.set_vfo_a(f"{new_freq:.3f}")
+                    self.set_vfo_b(f"{new_freq:.3f}")
                     self.send_cmd(f"FB{int(new_freq * 1000):011d}")
                     print(f"{int(new_freq * 1000):011d}")
 
                 elif self._rx_focus == "B":
-                    new_freq = round((float(self._freq_b)) + float(tuning_step * jog_step), 3)
+                    new_freq = round((float(self._freq_a)) + float(tuning_step * jog_step), 3)
 
-                    self.set_vfo_b(f"{new_freq:.3f}")
+                    self.set_vfo_a(f"{new_freq:.3f}")
                     self.send_cmd(f"FA{int(new_freq * 1000):011d}")
                     print(f"{int(new_freq * 1000):011d}")
 
-            case 2: # Main VFO
+            case 1: # Main VFO
                 tuning_step = 0.01 # 10 Hz
                 target_vfo = None
                 new_freq = None
@@ -373,43 +363,23 @@ class RadioBackend(QObject):
         if status == 1:
             # Assuming running on B and S&Ping on A
             self.send_cmd("FR0;FT1") # LISTEN: Turn on split to listen to unidentified signal while maintaining run freq
-            self.set_sm_status("LISTEN")
         elif status == 2:
             self.send_cmd("FR0") # WORK: Then, set TX and RX to A to work station
-            self.set_sm_status("WORK")
         elif status == 3:
             self.send_cmd("FR1") # CANCEL: Cancel split if someone responds to your CQ call
-
-
-    # Shuttle (currently not in use; may not be practical):
-
-    # def handle_shuttle(self, pos):
-    #     new_freq = None
-
-    #     if pos == 0:
-    #         return
-    #     elif pos > 0:
-    #         accel_rate = pos ** 2
-    #     elif pos < 0:
-    #         accel_rate = -(pos ** 2)
-
-    #     if self.get_rx_focus() == "A":
-    #         new_freq = round((float(self._freq_a)) + float(accel_rate), 3)
-    #         self.set_vfo_a(f"{new_freq:.3f}")
-    #         self.send_cmd(f"FA{int(new_freq * 1000):011d}")
-    #         print(f"{int(new_freq * 1000):011d}")
-
-    #     elif self.get_rx_focus() == "B":
-    #         new_freq = round((float(self._freq_b)) + float(accel_rate), 3)
-    #         self.set_vfo_b(f"{new_freq:.3f}")
-    #         self.send_cmd(f"FA{int(new_freq * 1000):011d}")
-    #         print(f"{int(new_freq * 1000):011d}")
-
 
     def handle_button(self, button):
         id, status = button[0], button[1]
 
         match id:
+            
+            case 262:
+                # A/B
+                if status == 1:
+                    if self._rx_focus == "B":
+                        self.send_cmd("FR0;")
+                    elif self._rx_focus == "A":
+                        self.send_cmd("FR1;")
 
             case 263:
                 # Swap A and B
@@ -418,7 +388,8 @@ class RadioBackend(QObject):
                     self.send_cmd(f"FB{int(float(self._freq_a) * 1000):011d}")
                     self.send_cmd(f"FA{int(temp_freq_b * 1000):011d}")
 
-            case 262:
+            case 264:
+                # NR
                 if status == 1:
                     self.send_cmd(f"NR{(self.nr_status + 1) % 3}")
                     
@@ -440,16 +411,13 @@ class RadioBackend(QObject):
                     if self._split_count > 3:
                         self._split_count = 1
                     self.split_macro(self._split_count)
-                    if self._split_count == 0:
-                        self._sm_status = "N"
                     self._split_count += 1
 
-            case 260:
+            case 269:
                 # Cancel Split Macro
                 if status == 1:
                     self.split_macro(3)
                     self._split_count = 1
-                    self._sm_status = "N"
                     
             case 261:
                 # CW/CW-R
@@ -469,11 +437,11 @@ class RadioBackend(QObject):
                         elif self._mode_b == "CW-R":
                             self.send_cmd("MD3")
 
-            case 269:
+            case 270:
                 if status == 1:
-                    self._jog_mode += 1
-                    if jog_mode > 1:
-                        jog_mode = 0
+                    self.set_jog_mode(self._jog_mode + 1)
+                    if self._jog_mode > 1:
+                        self.set_jog_mode(0)
 
             case _:
                 return
@@ -487,7 +455,6 @@ class RadioBackend(QObject):
     mode_b = Property(str, get_mode_b, set_mode, notify=mode_b_changed)
     fil_a = Property(str, get_fil_a, set_fil, notify=fil_a_changed)
     fil_b = Property(str, get_fil_b, set_fil, notify=fil_b_changed)
-    sm_status = Property(str, get_sm_status, set_sm_status, notify=sm_status_changed)
     mol_status = Property(int, get_mol_status, set_mol_status, notify=mol_status_changed)
     nr_status = Property(int, get_nr_status, set_nr_status, notify=nr_status_changed)
     jog_mode = Property(int, get_jog_mode, set_jog_mode, notify=jog_mode_changed)
