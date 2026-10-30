@@ -8,6 +8,7 @@ Window {
     visible: true
     title: "Context"
     color: '#000000'
+    visibility: Window.fullScreen
 
     ColumnLayout {
         id: mainLayout
