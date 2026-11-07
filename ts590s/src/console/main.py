@@ -194,7 +194,7 @@ class RadioBackend(QObject):
         self._split_count = 1
         self._jog_mode = 0
         self._jog_steps = [5, 10, 20, 50, 100]
-        self._jog_step_idx = 2
+        self._jog_step_idx = 0
 
         self.radio_thread = QThread()
         self.shuttlepro_thread = QThread()
