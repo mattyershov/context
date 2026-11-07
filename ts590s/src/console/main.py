@@ -458,20 +458,20 @@ class RadioBackend(QObject):
             case 266:
                 # Jog step up
                 if status == 1:
-                    if self._jog_step_idx < len(self._jog_steps):
-                        self._jog_step_idx += 1
-                    else:
-                        self.set_jog_step_idx(0)
-                    self.set_jog_step(self._jog_step_idx)
+                    new_idx = self._jog_step_idx + 1
+                    if new_idx >= len(self._jog_steps):
+                        new_idx = 0
+                    
+                    self.set_jog_step(new_idx)
 
             case 268:
                 # Jog step down
                 if status == 1:
-                    if self._jog_step_idx < len(self._jog_steps):
-                        self._jog_step_idx -= 1
-                    else:
-                        self.set_jog_step_idx(0)
-                    self.set_jog_step(self._jog_step_idx)
+                    new_idx = self._jog_step_idx - 1
+                    if new_idx < 0:
+                        new_idx = len(self._jog_steps) - 1
+                        
+                    self.set_jog_step(new_idx)
 
 
 
