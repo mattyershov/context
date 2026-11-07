@@ -449,18 +449,30 @@ class RadioBackend(QObject):
                             self.send_cmd("MD3")
 
             case 270:
+                # Jog mode
                 if status == 1:
                     self.set_jog_mode(self._jog_mode + 1)
                     if self._jog_mode > 1:
                         self.set_jog_mode(0)
 
             case 266:
+                # Jog step up
                 if status == 1:
                     if self._jog_step_idx < len(self._jog_steps):
                         self._jog_step_idx += 1
                         self.set_jog_step(self._jog_step_idx)
                     else:
                         self.set_jog_step(0)
+
+            case 268:
+                # Jog step down
+                if status == 1:
+                    if self._jog_step_idx < len(self._jog_steps):
+                        self._jog_step_idx += 1
+                        self.set_jog_step(self._jog_step_idx)
+                    else:
+                        self.set_jog_step(0)
+
 
 
 
