@@ -230,6 +230,14 @@ Window {
                 id: midCenterColumn
                 spacing: 20
 
+                Text {
+                    id: jogStep
+                    text: radio.jog_step + " Hz"
+                    color: '#ff0000'
+                    font.pointSize: 14
+                    Layout.alignment: Qt.AlignHCenter
+                }
+
                 ColumnLayout {
                     id: jogMode
                     Layout.fillWidth: false
@@ -240,14 +248,14 @@ Window {
                         implicitWidth: 150
                         Layout.fillWidth: true
                         border.width: 3
-                        border.color: '#ff0000'
-                        color: radio.jog_mode == 0 ? '#ff0000' : '#000000'
+                        border.color: '#00aeff'
+                        color: radio.jog_mode == 0 ? '#00aeff' : '#000000'
 
                         Text {
                             id: jogOppFreqText
                             anchors.centerIn: parent
                             text: "Opp Freq"
-                            color: radio.jog_mode == 0 ? '#000000' : '#ff0000'
+                            color: radio.jog_mode == 0 ? '#000000' : '#00aeff'
                             font.pointSize: 14
                         }
                     }
@@ -258,14 +266,14 @@ Window {
                         implicitWidth: 150
                         Layout.fillWidth: true
                         border.width: 3
-                        border.color: '#ff0000'
-                        color: radio.jog_mode == 1 ? '#ff0000' : "#000000"
+                        border.color: '#00aeff'
+                        color: radio.jog_mode == 1 ? '#00aeff' : "#000000"
 
                         Text {
                             id: jogMainFreqText
                             anchors.centerIn: parent
                             text: "Main Freq"
-                            color: radio.jog_mode == 1 ? "#000000" : '#ff0000'
+                            color: radio.jog_mode == 1 ? "#000000" : '#00aeff'
                             font.pointSize: 14
                         }
                     }

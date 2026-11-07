@@ -174,6 +174,7 @@ class RadioBackend(QObject):
     fil_b_changed = Signal(str)
     mol_status_changed = Signal(int)
     jog_mode_changed = Signal(int)
+    jog_step_changed = Signal(int)
 
     send_cat_cmd = Signal(str)
 
@@ -192,6 +193,8 @@ class RadioBackend(QObject):
 
         self._split_count = 1
         self._jog_mode = 0
+        self._jog_steps = [5, 10, 20, 50, 100]
+        self._jog_step_idx = 2
 
         self.radio_thread = QThread()
         self.shuttlepro_thread = QThread()
@@ -255,6 +258,9 @@ class RadioBackend(QObject):
     def get_jog_mode(self):
         return self._jog_mode
 
+    def get_jog_step(self):
+        return self._jog_steps[self._jog_step_idx]
+
     def set_vfo_a(self, new_freq):
         if self._freq_a != new_freq:
             self._freq_a = new_freq
@@ -312,13 +318,18 @@ class RadioBackend(QObject):
             self._jog_mode = new_jog_mode
             self.jog_mode_changed.emit(self._jog_mode)
 
+    def set_jog_step(self, new_jog_step_idx):
+        if self._jog_step_idx != new_jog_step_idx:
+            self._jog_step_idx = new_jog_step_idx
+            self.jog_step_changed.emit(self._jog_steps[self._jog_step_idx])
+
     def send_cmd(self, cmd):
         self.radio_worker.send_cmd(cmd)
 
     def handle_jog(self, jog_step):
         match self._jog_mode: 
             case 0: # Opposite VFO
-                tuning_step = 0.02 # 20 Hz
+                tuning_step = self._jog_steps[self._jog_step_idx] / 1000
                 target_vfo = None
                 new_freq = None
                 
@@ -337,7 +348,7 @@ class RadioBackend(QObject):
                     print(f"{int(new_freq * 1000):011d}")
 
             case 1: # Main VFO
-                tuning_step = 0.01 # 10 Hz
+                tuning_step = self._jog_steps[self._jog_step_idx] / 1000
                 target_vfo = None
                 new_freq = None
                 
@@ -443,6 +454,16 @@ class RadioBackend(QObject):
                     if self._jog_mode > 1:
                         self.set_jog_mode(0)
 
+            case 266:
+                if status == 1:
+                    if self._jog_step_idx < len(self._jog_steps):
+                        self._jog_step_idx += 1
+                        self.set_jog_step(self._jog_step_idx)
+                    else:
+                        self.set_jog_step(0)
+
+
+
             case _:
                 return
 
@@ -458,6 +479,7 @@ class RadioBackend(QObject):
     mol_status = Property(int, get_mol_status, set_mol_status, notify=mol_status_changed)
     nr_status = Property(int, get_nr_status, set_nr_status, notify=nr_status_changed)
     jog_mode = Property(int, get_jog_mode, set_jog_mode, notify=jog_mode_changed)
+    jog_step = Property(int, get_jog_step, set_jog_step, notify=jog_step_changed)
 
 
 
