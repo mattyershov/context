@@ -4,6 +4,7 @@ import serial
 from evdev import InputDevice, list_devices, ecodes
 import threading
 import time
+import RPi.GPIO as GPIO
 from PySide6.QtCore import QObject, Signal, Property, QThread
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
@@ -107,7 +108,6 @@ class RadioWorker(QObject):
 
 
 class ShuttleProWorker(QObject):
-
     jog_moved = Signal(int)         # {-1, +1} (relative)
     # shuttle_moved = Signal(int)     # [-7, +7] (absolute)
     button_pressed = Signal(list)    # [Button ID (0 thru 14), status (1=pressed, 0=released)]
@@ -161,6 +161,47 @@ class ShuttleProWorker(QObject):
         except Exception as e:
             print(f"ShuttlePro Error: {e}")
 
+class RS485Worker(QObject):
+    t = serial.Serial("/dev/ttyS0",115200)
+
+    def __init__(self, port="/dev/ttyS0", baud=115200):
+        super().__init__()
+        self.port = port
+        self.baud = baud
+        self.EN_485 =  4
+        self.ser = None
+        self._lock = threading.Lock()
+
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(EN_485,GPIO.OUT)
+
+        GPIO.output(self.EN_485, GPIO.LOW) # rx mode is default
+
+    def run(self):
+        try:
+            self.ser = serial.Serial(self.port, self.baud, timeout=0.1)
+
+            while True:
+                if self.ser.in_waiting > 0:
+                    with self._lock:
+                        raw_data = self.ser.read(self.ser.in_waiting)
+
+                    if raw_data:
+                        data = raw_data.decode('utf-8', errors="ignore")
+                        self.rx_data.emit(data)
+                    else:
+                        time.sleep(0.01)
+                    
+        except Exception as e:
+            print(f"RS485 Serial Error: {e}")
+        
+        def send(self, data):
+            if self.ser and self.ser.is_open:
+                with self._lock:
+                    GPIO.output(self.EN_485, GPIO.HIGH) 
+                    self.ser.write(data.encode('utf-8'))
+                    self.ser.flush()
+                    GPIO.output(self.EN_485, GPIO.LOW)
 
 class RadioBackend(QObject):
     freq_a_changed = Signal(str)
@@ -173,8 +214,13 @@ class RadioBackend(QObject):
     fil_a_changed = Signal(str)
     fil_b_changed = Signal(str)
     mol_status_changed = Signal(int)
+
     jog_mode_changed = Signal(int)
     jog_step_changed = Signal(int)
+
+    rx_data_changed = Signal(str)
+
+    tx_ant_changed = Signal(int)
 
     send_cat_cmd = Signal(str)
 
@@ -195,6 +241,8 @@ class RadioBackend(QObject):
         self._jog_mode = 0
         self._jog_steps = [5, 10, 20, 50, 100]
         self._jog_step_idx = 0
+
+        self._tx_ant = 0
 
         self.radio_thread = QThread()
         self.shuttlepro_thread = QThread()
@@ -261,6 +309,9 @@ class RadioBackend(QObject):
     def get_jog_step(self):
         return self._jog_steps[self._jog_step_idx]
 
+    def get_tx_ant(self):
+        return self._tx_ant
+
     def set_vfo_a(self, new_freq):
         if self._freq_a != new_freq:
             self._freq_a = new_freq
@@ -322,6 +373,11 @@ class RadioBackend(QObject):
         if self._jog_step_idx != new_jog_step_idx:
             self._jog_step_idx = new_jog_step_idx
             self.jog_step_changed.emit(self._jog_steps[self._jog_step_idx])
+
+    def set_tx_ant(self, new_tx_ant):
+        if self._tx_ant != new_tx_ant:
+            self._tx_ant = new_tx_ant
+            self.tx_ant_changed.emit(new_tx_ant)
 
     def send_cmd(self, cmd):
         self.radio_worker.send_cmd(cmd)
@@ -503,7 +559,7 @@ baud = config.get("baud", 115200)
 
 
 radio = RadioBackend(port=port, baud=baud)
-engine.rootContext().setContextProperty("radio", radio)
+engine.rootContext().setContextProperty("backend", radio)
 
 engine.load("main.qml")
 

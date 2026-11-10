@@ -30,10 +30,10 @@ Window {
 
                 Text {
                     id: modeA
-                    text: radio.mode_a
+                    text: backend.mode_a
                     font.pointSize: 15
                     color: {
-                        switch (radio.mode_a) {
+                        switch (backend.mode_a) {
                             case "CW":
                                 return '#00ff00'
 
@@ -54,15 +54,15 @@ Window {
                     width: 50
                     height: 30
                     color:{
-                        if (radio.fil_a == "A"){
+                        if (backend.fil_a == "A"){
                             return '#0066ff'
-                        } else if (radio.fil_a == "B") {
+                        } else if (backend.fil_a == "B") {
                             return '#ff0000'
                         } else return '#000000'
                     }
                     Text {
                         id: filAText
-                        text: radio.fil_a
+                        text: backend.fil_a
                         font.pointSize: 15
                         color: "#ffffff"
                         anchors.centerIn: parent
@@ -82,7 +82,7 @@ Window {
 
                     Text {
                         id: freqA
-                        text: radio.freq_a
+                        text: backend.freq_a
                         font.pointSize: 25
                         color: "#ffffff"
                         Layout.alignment: Qt.AlignHCenter
@@ -97,9 +97,9 @@ Window {
                             width: 80
                             height: 5
                             color: {
-                                if (radio.rx_focus == "A") {
+                                if (backend.rx_focus == "A") {
                                     return "#00ff00"
-                                } else if (radio.tx_focus == "A" && radio.rx_focus == "B"){
+                                } else if (backend.tx_focus == "A" && backend.rx_focus == "B"){
                                     return "#ff0000"
                                 }
                                 return '#000000ff'
@@ -111,9 +111,9 @@ Window {
                             width: 80
                             height: 5
                             color: {
-                                if (radio.rx_focus == "A" && radio.tx_focus == "B") {
+                                if (backend.rx_focus == "A" && backend.tx_focus == "B") {
                                     return "#00ff00"
-                                } else if (radio.tx_focus == "A"){
+                                } else if (backend.tx_focus == "A"){
                                     return "#ff0000"
                                 }
                                 return '#000000ff'
@@ -137,7 +137,7 @@ Window {
 
                     Text {
                         id: freqB
-                        text: radio.freq_b
+                        text: backend.freq_b
                         font.pointSize: 25
                         color: "#ffffff"
                         Layout.alignment: Qt.AlignHCenter
@@ -152,9 +152,9 @@ Window {
                             width: 75
                             height: 5
                             color: {
-                                if (radio.rx_focus == "B") {
+                                if (backend.rx_focus == "B") {
                                     return "#00ff00"
-                                } else if (radio.tx_focus == "B" && radio.rx_focus == "A"){
+                                } else if (backend.tx_focus == "B" && backend.rx_focus == "A"){
                                     return "#ff0000"
                                 }
                                 return '#000000ff'
@@ -166,9 +166,9 @@ Window {
                             width: 75
                             height: 5
                             color: {
-                                if (radio.rx_focus == "B" && radio.tx_focus == "A") {
+                                if (backend.rx_focus == "B" && backend.tx_focus == "A") {
                                     return "#00ff00"
-                                } else if (radio.tx_focus == "B"){
+                                } else if (backend.tx_focus == "B"){
                                     return "#ff0000"
                                 }
                                 return '#000000ff'
@@ -181,15 +181,15 @@ Window {
                     width: 50
                     height: 30
                     color:{
-                        if (radio.fil_b == "A"){
+                        if (backend.fil_b == "A"){
                             return '#0066ff'
-                        } else if (radio.fil_b == "B") {
+                        } else if (backend.fil_b == "B") {
                             return '#ff0000'
                         } else return '#000000'
                     }
                     Text {
                         id: filBText
-                        text: radio.fil_b
+                        text: backend.fil_b
                         font.pointSize: 15
                         color: "#ffffff"
                         anchors.centerIn: parent
@@ -199,10 +199,10 @@ Window {
 
                 Text {
                     id: modeB
-                    text: radio.mode_b
+                    text: backend.mode_b
                     font.pointSize: 15
                     color: {
-                        switch (radio.mode_b) {
+                        switch (backend.mode_b) {
                             case "CW":
                                 return '#00ff00'
 
@@ -232,7 +232,7 @@ Window {
 
                 Text {
                     id: jogStep
-                    text: radio.jog_step + " Hz"
+                    text: backend.jog_step + " Hz"
                     color: '#ff0000'
                     font.pointSize: 14
                     Layout.alignment: Qt.AlignHCenter
@@ -249,13 +249,13 @@ Window {
                         Layout.fillWidth: true
                         border.width: 3
                         border.color: '#00aeff'
-                        color: radio.jog_mode == 0 ? '#00aeff' : '#000000'
+                        color: backend.jog_mode == 0 ? '#00aeff' : '#000000'
 
                         Text {
                             id: jogOppFreqText
                             anchors.centerIn: parent
                             text: "Opp Freq"
-                            color: radio.jog_mode == 0 ? '#000000' : '#00aeff'
+                            color: backend.jog_mode == 0 ? '#000000' : '#00aeff'
                             font.pointSize: 14
                         }
                     }
@@ -267,13 +267,13 @@ Window {
                         Layout.fillWidth: true
                         border.width: 3
                         border.color: '#00aeff'
-                        color: radio.jog_mode == 1 ? '#00aeff' : "#000000"
+                        color: backend.jog_mode == 1 ? '#00aeff' : "#000000"
 
                         Text {
                             id: jogMainFreqText
                             anchors.centerIn: parent
                             text: "Main Freq"
-                            color: radio.jog_mode == 1 ? "#000000" : '#00aeff'
+                            color: backend.jog_mode == 1 ? "#000000" : '#00aeff'
                             font.pointSize: 14
                         }
                     }
@@ -281,5 +281,16 @@ Window {
 
             }
         }
+
+        RowLayout {
+            id: antennas
+            ColumnLayout {
+                id: antRow1
+
+                Button {
+                    id: ant1
+                    }
+                }
+            }
+        }
     }
-}
