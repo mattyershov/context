@@ -5,12 +5,12 @@ from evdev import InputDevice, list_devices, ecodes
 import threading
 import time
 import RPi.GPIO as GPIO
-from PySide6.QtCore import QObject, Signal, Property, QThread
+from PySide6.QtCore import QObject, Signal, Property, QThread, Slot
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 with open("config.json", "r", encoding="utf-8") as file:
-    config = json.load(file)
+    config = json.loads(file)
 
 class RadioWorker(QObject):
 
@@ -23,6 +23,7 @@ class RadioWorker(QObject):
     fil = Signal(str)  # {A, B}
     nr_status = Signal(int)  # {0, 1, 2} (NR is independent of VFO focus)
     mode = Signal(str) # {LSB, USB, CW, CW-R}
+    tx_status = Signal(int) # {0, 1}
 
     def __init__(self, port, baud):
         super().__init__()
@@ -31,6 +32,7 @@ class RadioWorker(QObject):
         self.ser = None
         self._lock = threading.Lock()
 
+    @Slot(str)
     def send_cmd(self, cmd):
         if self.ser and self.ser.is_open:
             if not cmd.endswith(";"):
@@ -84,6 +86,10 @@ class RadioWorker(QObject):
                     self.fil.emit("A")
                 elif int(buffer[2:]) == 1:
                     self.fil.emit("B")
+
+            case "TX":
+                self.tx_status.emit(int(buffer[2:]))
+
             case _:
                 pass
 
@@ -115,7 +121,7 @@ class ShuttleProWorker(QObject):
     def __init__(self):
         super().__init__()
 
-        self.spv2_path = config.get("shuttleprov2", {}).get("port", "/dev/input/by-id/usb-Contour_Design_ShuttlePRO_v2-event-mouse")
+        self.spv2_path = config["shuttleprov2"]["port"]
         self._last_jog_pos = None
         self.delta = None
 
@@ -162,7 +168,7 @@ class ShuttleProWorker(QObject):
             print(f"ShuttlePro Error: {e}")
 
 class RS485Worker(QObject):
-    t = serial.Serial("/dev/ttyS0",115200)
+    rs485_rx_data_changed = Signal(str)
 
     def __init__(self, port="/dev/ttyS0", baud=115200):
         super().__init__()
@@ -173,7 +179,7 @@ class RS485Worker(QObject):
         self._lock = threading.Lock()
 
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(EN_485,GPIO.OUT)
+        GPIO.setup(self.EN_485,GPIO.OUT)
 
         GPIO.output(self.EN_485, GPIO.LOW) # rx mode is default
 
@@ -188,20 +194,20 @@ class RS485Worker(QObject):
 
                     if raw_data:
                         data = raw_data.decode('utf-8', errors="ignore")
-                        self.rx_data.emit(data)
+                        self.rs485_rx_data_changed.emit(data)
                     else:
                         time.sleep(0.01)
                     
         except Exception as e:
             print(f"RS485 Serial Error: {e}")
-        
-        def send(self, data):
-            if self.ser and self.ser.is_open:
-                with self._lock:
-                    GPIO.output(self.EN_485, GPIO.HIGH) 
-                    self.ser.write(data.encode('utf-8'))
-                    self.ser.flush()
-                    GPIO.output(self.EN_485, GPIO.LOW)
+    @Slot(str)
+    def send(self, data):
+        if self.ser and self.ser.is_open:
+            with self._lock:
+                GPIO.output(self.EN_485, GPIO.HIGH) 
+                self.ser.write(data.encode('utf-8'))
+                self.ser.flush()
+                GPIO.output(self.EN_485, GPIO.LOW)
 
 class RadioBackend(QObject):
     freq_a_changed = Signal(str)
@@ -214,13 +220,19 @@ class RadioBackend(QObject):
     fil_a_changed = Signal(str)
     fil_b_changed = Signal(str)
     mol_status_changed = Signal(int)
+    tx_status_changed = Signal(int)
 
     jog_mode_changed = Signal(int)
     jog_step_changed = Signal(int)
 
-    rx_data_changed = Signal(str)
+    rs485_rx_data_changed = Signal(str)
+    send_rs485_data = Signal(str)
 
     tx_ant_changed = Signal(int)
+    ant0_changed = Signal(str)
+    ant1_changed = Signal(str)
+    ant2_changed = Signal(str)
+    ant3_changed = Signal(str)
 
     send_cat_cmd = Signal(str)
 
@@ -236,6 +248,7 @@ class RadioBackend(QObject):
         self._fil_a = "N"
         self._fil_b = "N"
         self._mol_status = 0
+        self._tx_status = 1
 
         self._split_count = 1
         self._jog_mode = 0
@@ -243,18 +256,28 @@ class RadioBackend(QObject):
         self._jog_step_idx = 0
 
         self._tx_ant = 0
+        self._ant0 = "N"
+        self._ant1 = "N"
+        self._ant2 = "N"
+        self._ant3 = "N"
 
         self.radio_thread = QThread()
         self.shuttlepro_thread = QThread()
+        self.rs485_thread = QThread()
 
         self.radio_worker = RadioWorker(port, baud)
         self.shuttlepro_worker = ShuttleProWorker()
+        self.rs485_worker = RS485Worker()
 
         self.radio_worker.moveToThread(self.radio_thread)
         self.shuttlepro_worker.moveToThread(self.shuttlepro_thread)
+        self.rs485_worker.moveToThread(self.rs485_thread)
+
+        self.send_rs485_data.connect(rs485_worker.send)
 
         self.radio_thread.started.connect(self.radio_worker.run)
         self.shuttlepro_thread.started.connect(self.shuttlepro_worker.run)
+        self.rs485_thread.started.connect(self.rs485_worker.run)
 
         self.radio_worker.vfo_a_freq.connect(self.set_vfo_a)
         self.radio_worker.vfo_b_freq.connect(self.set_vfo_b)
@@ -303,6 +326,9 @@ class RadioBackend(QObject):
     def get_mol_status(self):
         return self._mol_status
 
+    def get_tx_status(self):
+        return self._tx_status
+
     def get_jog_mode(self):
         return self._jog_mode
 
@@ -311,6 +337,18 @@ class RadioBackend(QObject):
 
     def get_tx_ant(self):
         return self._tx_ant
+
+    def get_ant0(self):
+        return self._ant0
+    
+    def get_ant1(self):
+        return self._ant1
+
+    def get_ant2(self):
+        return self._ant2
+
+    def get_ant3(self):
+        return self._ant3
 
     def set_vfo_a(self, new_freq):
         if self._freq_a != new_freq:
@@ -363,6 +401,11 @@ class RadioBackend(QObject):
         if self._mol_status != new_status:
             self._mol_status = new_status
             self.mol_status_changed.emit(self._mol_status)
+
+    def set_tx_status(self, new_status):
+        if self._tx_status != new_status:
+            self._tx_status = new_status
+            self.tx_status_changed.emit(self._tx_status)
         
     def set_jog_mode(self, new_jog_mode):
         if self._jog_mode != new_jog_mode:
@@ -378,6 +421,26 @@ class RadioBackend(QObject):
         if self._tx_ant != new_tx_ant:
             self._tx_ant = new_tx_ant
             self.tx_ant_changed.emit(new_tx_ant)
+
+    def set_ant0(self, new_ant0):
+        if self._ant0 != new_ant0:
+            self._ant0 = new_ant0
+            self.ant0_changed.emit(new_ant0)
+
+    def set_ant1(self, new_ant1):
+        if self._ant1 != new_ant1:
+            self._ant1 = new_ant1
+            self.ant1_changed.emit(new_ant1)
+
+    def set_ant2(self, new_ant2):
+        if self._ant2 != new_ant2:
+            self._ant2 = new_ant2
+            self.ant2_changed.emit(new_ant2)
+
+    def set_ant3(self, new_ant3):
+        if self._ant3 != new_ant3:
+            self._ant3 = new_ant3
+            self.ant3_changed.emit(new_ant3)
 
     def send_cmd(self, cmd):
         self.radio_worker.send_cmd(cmd)
@@ -425,7 +488,6 @@ class RadioBackend(QObject):
                 return
             
 
-
     def split_macro(self, status):
         if status == 1:
             # Assuming running on B and S&Ping on A
@@ -458,7 +520,7 @@ class RadioBackend(QObject):
             case 264:
                 # NR
                 if status == 1:
-                    self.send_cmd(f"NR{(self.nr_status + 1) % 3}")
+                    self.send_cmd(f"NR{(self._nr_status + 1) % 3}")
                     
             case 267:
                 # MOL
@@ -529,11 +591,28 @@ class RadioBackend(QObject):
                         
                     self.set_jog_step(new_idx)
 
-
-
-
             case _:
                 return
+
+
+    @Slot(int)
+    def switch_ant(self, number):
+        self.set_tx_ant(number)
+        self.send_rs485_data.emit(str(number) + '1') #TODO: Add tags to differentiate between exclusive vs. additive antenna selections
+
+
+    def antennas(self):
+        # for i in range(0, len(config["antennas"])):
+        #     if self._freq_a >= config["antennas"]["lowerFreq"] and self._freq_a <= ["antennas"]["upperFreq"]:
+        #         match 
+        self.set_ant0("20m Dipole")
+        self.set_ant1("Dummy Load")
+        # self.set_ant2("INOP")
+        # self.set_ant3("INOP")
+
+
+
+        
 
     freq_a = Property(str, get_vfo_a, set_vfo_a, notify=freq_a_changed)
     freq_b = Property(str, get_vfo_b, set_vfo_b, notify=freq_b_changed)
@@ -545,17 +624,22 @@ class RadioBackend(QObject):
     fil_a = Property(str, get_fil_a, set_fil, notify=fil_a_changed)
     fil_b = Property(str, get_fil_b, set_fil, notify=fil_b_changed)
     mol_status = Property(int, get_mol_status, set_mol_status, notify=mol_status_changed)
-    nr_status = Property(int, get_nr_status, set_nr_status, notify=nr_status_changed)
+    tx_status = Property(int, get_tx_status, set_tx_status, notify=tx_status_changed)
     jog_mode = Property(int, get_jog_mode, set_jog_mode, notify=jog_mode_changed)
     jog_step = Property(int, get_jog_step, set_jog_step, notify=jog_step_changed)
+    ant0 = Property(str, get_ant0, set_ant0, notify=ant0_changed)
+    ant1 = Property(str, get_ant1, set_ant1, notify=ant1_changed)
+    ant2 = Property(str, get_ant2, set_ant2, notify=ant2_changed)
+    ant3 = Property(str, get_ant3, set_ant3, notify=ant3_changed)
+    
 
 
 
 app = QGuiApplication(sys.argv)
 engine = QQmlApplicationEngine()
 
-port = config.get("port", "/dev/ttyUSB0")
-baud = config.get("baud", 115200)
+port = config["radios"][0]["port"]
+baud = config["radios"][0]["baud"]
 
 
 radio = RadioBackend(port=port, baud=baud)

@@ -40,7 +40,8 @@ Window {
                             case "CW-R":
                                 return '#ff7300'
 
-                            case "LSB" || "USB":
+                            case "LSB":
+                            case "USB":
                                 return '#006eff'
 
                             default:
@@ -209,7 +210,8 @@ Window {
                             case "CW-R":
                                 return '#ff7300'
 
-                            case "LSB" || "USB":
+                            case "LSB":
+                            case "USB":
                                 return '#006eff'
 
                             default:
@@ -284,13 +286,26 @@ Window {
 
         RowLayout {
             id: antennas
-            ColumnLayout {
-                id: antRow1
 
-                Button {
-                    id: ant1
-                    }
+            Button {
+                id: ant0
+                height: 150
+                text: backend.ant0
+                font.pointSize: 14
+                onClicked: {
+                    backend.switch_ant(0)
+                }
+            }
+
+            Button {
+                id: ant1
+                height: 150
+                text: backend.ant1
+                font.pointSize: 14
+                onClicked: {
+                    backend.switch_ant(1)
                 }
             }
         }
     }
+}

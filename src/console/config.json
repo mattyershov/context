@@ -1,0 +1,36 @@
+{
+    "radios": [
+        {
+            "id": 0,
+            "hamlibRigNumber": 2031,
+            "name": "TS-590s",
+            "port": "/dev/ttyUSB0",
+            "baud": 115200
+        }
+    ],
+
+    "shuttleprov2":
+    {
+        "port": "/dev/input/by-id/usb-Contour_Design_ShuttlePRO_v2-event-mouse"
+    },
+
+    "antennas": [
+
+        {
+        "id": 0,
+        "name": "20m Dipole",
+
+        "band": "20m",
+        "lowerFreq": 14000,
+        "upperFreq": 14350
+        },
+
+        {
+        "id": 1,
+        "name": "Dummy Load",
+
+        "power": 5
+        }
+
+    ]
+}
