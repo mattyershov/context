@@ -274,7 +274,7 @@ class RadioBackend(QObject):
         self.shuttlepro_worker.moveToThread(self.shuttlepro_thread)
         self.rs485_worker.moveToThread(self.rs485_thread)
 
-        self.send_rs485_data.connect(rs485_worker.send)
+        self.send_rs485_data.connect(self.rs485_worker.send)
 
         self.radio_thread.started.connect(self.radio_worker.run)
         self.shuttlepro_thread.started.connect(self.shuttlepro_worker.run)
