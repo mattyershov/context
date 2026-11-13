@@ -9,8 +9,8 @@ from PySide6.QtCore import QObject, Signal, Property, QThread, Slot
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-with open("config.json", "r", encoding="utf-8") as file:
-    config = json.loads(file)
+# with open("config.json", "r", encoding="utf-8") as file:
+#     config = json.loads(file)
 
 class RadioWorker(QObject):
 
@@ -121,7 +121,8 @@ class ShuttleProWorker(QObject):
     def __init__(self):
         super().__init__()
 
-        self.spv2_path = config["shuttleprov2"]["port"]
+        # self.spv2_path = config["shuttleprov2"]["port"]
+        self.spv2_path = "/dev/input/by-id/usb-Contour_Design_ShuttlePRO_v2-event-mouse"
         self._last_jog_pos = None
         self.delta = None
 
@@ -638,8 +639,11 @@ class RadioBackend(QObject):
 app = QGuiApplication(sys.argv)
 engine = QQmlApplicationEngine()
 
-port = config["radios"][0]["port"]
-baud = config["radios"][0]["baud"]
+# port = config["radios"][0]["port"]
+# baud = config["radios"][0]["baud"]
+
+port = "/dev/ttyUSB0"
+baud = 115200
 
 
 radio = RadioBackend(port=port, baud=baud)

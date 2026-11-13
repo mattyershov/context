@@ -32,12 +32,13 @@ void loop() {
 
       if (port >= 0 && port <= 7) {
         int targetPin = port + 2;
-      }
 
-      if (value == '0') {
-        digitalWrite(targetPin, LOW);
-      } else if (value == '1') {
-        digitalWrite(targetPin, HIGH);
+
+        if (value == '0') {
+          digitalWrite(targetPin, LOW);
+        } else if (value == '1') {
+          digitalWrite(targetPin, HIGH);
+        }
       }
     }
     rs485Serial.println(inData);
