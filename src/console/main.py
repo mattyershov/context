@@ -295,7 +295,9 @@ class RadioBackend(QObject):
         self.send_cat_cmd.connect(self.radio_worker.send_cmd)
 
         self.radio_thread.start()
-        self.shuttlepro_thread.start() 
+        self.shuttlepro_thread.start()
+        self.rs485_thread.start()
+        self.antennas()
 
     def get_vfo_a(self):
         return self._freq_a
