@@ -662,4 +662,5 @@ engine.load(BASE_DIR / "main.qml")
 if not engine.rootObjects():
     sys.exit(-1)
 
+GPIO.cleanup()
 sys.exit(app.exec())
