@@ -18,7 +18,7 @@ void loop() {
 
   if (rs485Serial.available()) {
     String inData = rs485Serial.readStringUntil('\n');
-    inData.trim(); 
+    inData.trim();
 
     // Data sent as an array of arrays, e.g., [[0, 1], [1, 1], [2, 0]], where each array contains a port ([0,7]) and a value (0 or 1)
     // Currently, data can only be sent as a 1D array, for testing purposes. TODO: Add tags to differentiate between exclusive vs. additive antenna selections.
@@ -32,9 +32,9 @@ void loop() {
 
 
         if (value == '0') {
-          digitalWrite(targetPin, LOW);
-        } else if (value == '1') {
           digitalWrite(targetPin, HIGH);
+        } else if (value == '1') {
+          digitalWrite(targetPin, Low);
         }
       }
     }
