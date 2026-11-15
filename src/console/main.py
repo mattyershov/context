@@ -212,7 +212,7 @@ class RS485Worker(QObject):
             with self._lock:
                 GPIO.output(self.EN_485, GPIO.HIGH) 
                 formatted_data = data + "\n"
-                self.ser.write(data.encode('utf-8'))
+                self.ser.write(formatted_data.encode('utf-8'))
                 self.ser.flush()
                 GPIO.output(self.EN_485, GPIO.LOW)
 
