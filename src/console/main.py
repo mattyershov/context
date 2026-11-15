@@ -179,14 +179,8 @@ class RS485Worker(QObject):
         super().__init__()
         self.port = port
         self.baud = baud
-        self.EN_485 =  4
         self.ser = None
         self._lock = threading.Lock()
-
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.EN_485,GPIO.OUT)
-
-        GPIO.output(self.EN_485, GPIO.LOW) # rx mode is default
 
     def run(self):
         try:
@@ -200,8 +194,8 @@ class RS485Worker(QObject):
                     if raw_data:
                         data = raw_data.decode('utf-8', errors="ignore")
                         self.rs485_rx_data_changed.emit(data)
-                    else:
-                        time.sleep(0.01)
+                else:
+                    time.sleep(0.01)
                     
         except Exception as e:
             print(f"RS485 Serial Error: {e}")
@@ -210,11 +204,9 @@ class RS485Worker(QObject):
     def send(self, data):
         if self.ser and self.ser.is_open:
             with self._lock:
-                GPIO.output(self.EN_485, GPIO.HIGH) 
                 formatted_data = data + "\n"
                 self.ser.write(formatted_data.encode('utf-8'))
                 self.ser.flush()
-                GPIO.output(self.EN_485, GPIO.LOW)
 
 class RadioBackend(QObject):
     freq_a_changed = Signal(str)
