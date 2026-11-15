@@ -5,8 +5,7 @@ import serial
 from evdev import InputDevice, list_devices, ecodes
 import threading
 import time
-import RPi.GPIO as GPIO
-from PySide6.QtCore import QObject, Signal, Property, QThread, Slot
+from PySide6.QtCore import QObject, Signal, Property, QThread, Slot, QTimer
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
@@ -111,20 +110,20 @@ class RadioWorker(QObject):
         except Exception as e:
             print(f"Radio Serial Error: {e}")
 
-        def _read_serial(self):
-            if self.ser.in_waiting > 0:
-                with self._lock:
-                    byte_cmd = self.ser.read_until(b";")
-                if byte_cmd.endswith(b";"):
-                    cmd_ascii = byte_cmd[:-1].decode('ascii', errors="ignore")
-                    if cmd_ascii:
-                        self.parse(cmd_ascii)
-                
-        @Slot()
-        def stop(self):
-            if self.timer:
-                self.timer.stop()
-            
+    def _read_serial(self):
+        if self.ser.in_waiting > 0:
+            with self._lock:
+                byte_cmd = self.ser.read_until(b";")
+            if byte_cmd.endswith(b";"):
+                cmd_ascii = byte_cmd[:-1].decode('ascii', errors="ignore")
+                if cmd_ascii:
+                    self.parse(cmd_ascii)
+
+    @Slot()
+    def stop(self):
+        if self.timer:
+            self.timer.stop()
+        
 
 
 
@@ -192,7 +191,7 @@ class ShuttleProWorker(QObject):
 class RS485Worker(QObject):
     rs485_rx_data_changed = Signal(str)
 
-    def __init__(self, port="/dev/ttyserial0", baud=9600):
+    def __init__(self, port="/dev/ttyS0", baud=9600):
         super().__init__()
         self.port = port
         self.baud = baud
@@ -684,5 +683,5 @@ engine.load(BASE_DIR / "main.qml")
 if not engine.rootObjects():
     sys.exit(-1)
 
-GPIO.cleanup()
+
 sys.exit(app.exec())
