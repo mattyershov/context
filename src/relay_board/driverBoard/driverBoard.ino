@@ -34,7 +34,7 @@ void loop() {
         if (value == '0') {
           digitalWrite(targetPin, HIGH);
         } else if (value == '1') {
-          digitalWrite(targetPin, Low);
+          digitalWrite(targetPin, LOW);
         }
       }
     }
