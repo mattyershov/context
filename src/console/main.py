@@ -201,11 +201,13 @@ class RS485Worker(QObject):
                     
         except Exception as e:
             print(f"RS485 Serial Error: {e}")
+            
     @Slot(str)
     def send(self, data):
         if self.ser and self.ser.is_open:
             with self._lock:
                 GPIO.output(self.EN_485, GPIO.HIGH) 
+                formatted_data = data + "\n"
                 self.ser.write(data.encode('utf-8'))
                 self.ser.flush()
                 GPIO.output(self.EN_485, GPIO.LOW)

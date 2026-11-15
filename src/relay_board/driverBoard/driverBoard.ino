@@ -4,7 +4,6 @@ const int rxPin = 10;
 const int txPin = 11;
 SoftwareSerial rs485Serial(rxPin, txPin);
 
-
 void setup() {
   rs485Serial.begin(9600);
 
@@ -14,8 +13,6 @@ void setup() {
     digitalWrite(i, HIGH);
   }
 }
-
-
 
 void loop() {
 
