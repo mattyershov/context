@@ -1,3 +1,4 @@
+from pathlib import Path
 import sys
 import json
 import serial
@@ -11,6 +12,9 @@ from PySide6.QtQml import QQmlApplicationEngine
 
 # with open("config.json", "r", encoding="utf-8") as file:
 #     config = json.loads(file)
+
+BASE_DIR = Path(__file__).resolve().parent
+
 
 class RadioWorker(QObject):
 
@@ -653,7 +657,7 @@ baud = 115200
 radio = RadioBackend(port=port, baud=baud)
 engine.rootContext().setContextProperty("backend", radio)
 
-engine.load("main.qml")
+engine.load(BASE_DIR / "main.qml")
 
 if not engine.rootObjects():
     sys.exit(-1)
