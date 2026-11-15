@@ -35,6 +35,7 @@ class RadioWorker(QObject):
         self.baud = baud
         self.ser = None
         self._lock = threading.Lock()
+        self.timer = None
 
     @Slot(str)
     def send_cmd(self, cmd):
@@ -103,18 +104,28 @@ class RadioWorker(QObject):
             with self._lock:
                 self.ser.write(b"AI2;")
 
-            while True:
-                if self.ser.in_waiting > 0:
-                    with self._lock:
-                        byte_cmd = self.ser.read_until(b";")
-                    if byte_cmd.endswith(b";"):
-                        cmd_ascii = byte_cmd[:-1].decode('ascii', errors="ignore")
-                        if cmd_ascii:
-                            self.parse(cmd_ascii)
-                else:
-                    time.sleep(0.05)
+            self.timer = QTimer()
+            self.timer.timeout.connect(self._read_serial)
+            self.timer.start(10) # Fires every 10ms (Replaces time.sleep(0.01))
+
         except Exception as e:
             print(f"Radio Serial Error: {e}")
+
+        def _read_serial(self):
+            if self.ser.in_waiting > 0:
+                with self._lock:
+                    byte_cmd = self.ser.read_until(b";")
+                if byte_cmd.endswith(b";"):
+                    cmd_ascii = byte_cmd[:-1].decode('ascii', errors="ignore")
+                    if cmd_ascii:
+                        self.parse(cmd_ascii)
+                
+        @Slot()
+        def stop(self):
+            if self.timer:
+                self.timer.stop()
+            
+
 
 
 class ShuttleProWorker(QObject):
@@ -124,24 +135,30 @@ class ShuttleProWorker(QObject):
 
     def __init__(self):
         super().__init__()
-
         # self.spv2_path = config["shuttleprov2"]["port"]
         self.spv2_path = "/dev/input/by-id/usb-Contour_Design_ShuttlePRO_v2-event-mouse"
         self._last_jog_pos = None
         self.delta = None
+        self._is_running = True
 
     @staticmethod
     def _to_signed_8bit(val):
         """Converts evdev unsigned 8-bit byte (0..255) to signed int (-128..127)."""
         return val - 256 if val > 127 else val
 
+    @Slot()
+    def stop(self):
+        self._is_running = False
+
     def run(self):
         if not self.spv2_path:
+            return
+        
+        if not self._is_running:
             return
         try:
             spv2 = InputDevice(self.spv2_path)
             spv2.grab()
-
             for event in spv2.read_loop():
                 
                 # Jog
@@ -175,30 +192,33 @@ class ShuttleProWorker(QObject):
 class RS485Worker(QObject):
     rs485_rx_data_changed = Signal(str)
 
-    def __init__(self, port="/dev/ttyS0", baud=115200):
+    def __init__(self, port="/dev/ttyserial0", baud=9600):
         super().__init__()
         self.port = port
         self.baud = baud
         self.ser = None
         self._lock = threading.Lock()
+        self.timer = None
 
+    @Slot()
     def run(self):
         try:
             self.ser = serial.Serial(self.port, self.baud, timeout=0.1)
+            self.timer = QTimer()
+            self.timer.timeout.connect(self._read_rs485)
+            self.timer.start(10)
 
-            while True:
-                if self.ser.in_waiting > 0:
-                    with self._lock:
-                        raw_data = self.ser.read(self.ser.in_waiting)
-
-                    if raw_data:
-                        data = raw_data.decode('utf-8', errors="ignore")
-                        self.rs485_rx_data_changed.emit(data)
-                else:
-                    time.sleep(0.01)
-                    
         except Exception as e:
             print(f"RS485 Serial Error: {e}")
+
+    def _read_rs485(self):
+        if self.ser.in_waiting > 0:
+            with self._lock:
+                raw_data = self.ser.read(self.ser.in_waiting)
+
+            if raw_data:
+                data = raw_data.decode('utf-8', errors="ignore")
+                self.rs485_rx_data_changed.emit(data)
             
     @Slot(str)
     def send(self, data):
@@ -207,6 +227,12 @@ class RS485Worker(QObject):
                 formatted_data = data + "\n"
                 self.ser.write(formatted_data.encode('utf-8'))
                 self.ser.flush()
+        
+
+    @Slot()
+    def stop(self):
+        if self.timer:
+            self.timer.stop()
 
 class RadioBackend(QObject):
     freq_a_changed = Signal(str)
@@ -444,7 +470,7 @@ class RadioBackend(QObject):
             self.ant3_changed.emit(new_ant3)
 
     def send_cmd(self, cmd):
-        self.radio_worker.send_cmd(cmd)
+        self.send_cat_cmd.emit(cmd)
 
     def handle_jog(self, jog_step):
         match self._jog_mode: 
@@ -648,6 +674,10 @@ baud = 115200
 
 radio = RadioBackend(port=port, baud=baud)
 engine.rootContext().setContextProperty("backend", radio)
+
+app.aboutToQuit.connect(radio.radio_worker.stop)
+app.aboutToQuit.connect(radio.shuttlepro_worker.stop)
+app.aboutToQuit.connect(radio.rs485_worker.stop)
 
 engine.load(BASE_DIR / "main.qml")
 
