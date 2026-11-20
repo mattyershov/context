@@ -191,7 +191,7 @@ class ShuttleProWorker(QObject):
 class RS485Worker(QObject):
     rs485_rx_data_changed = Signal(str)
 
-    def __init__(self, port="/dev/ttyS0", baud=9600):
+    def __init__(self, port="/dev/serial0", baud=9600):
         super().__init__()
         self.port = port
         self.baud = baud
