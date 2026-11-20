@@ -223,7 +223,7 @@ class RS485Worker(QObject):
     def send(self, data):
         if self.ser and self.ser.is_open:
             with self._lock:
-                formatted_data = data
+                formatted_data = data + '\n'
                 self.ser.write(formatted_data.encode('ascii'))
                 self.ser.flush()
         
