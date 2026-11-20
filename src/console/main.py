@@ -216,7 +216,7 @@ class RS485Worker(QObject):
                 raw_data = self.ser.read(self.ser.in_waiting)
 
             if raw_data:
-                data = raw_data.decode('utf-8', errors="ignore")
+                data = raw_data.decode('ascii', errors="ignore")
                 self.rs485_rx_data_changed.emit(data)
             
     @Slot(str)
@@ -224,7 +224,7 @@ class RS485Worker(QObject):
         if self.ser and self.ser.is_open:
             with self._lock:
                 formatted_data = data
-                self.ser.write(formatted_data.encode('utf-8'))
+                self.ser.write(formatted_data.encode('ascii'))
                 self.ser.flush()
         
 
