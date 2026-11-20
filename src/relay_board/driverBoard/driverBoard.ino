@@ -29,7 +29,6 @@ void loop() {
     String inData = rs485Serial.readStringUntil('\n');
     inData.trim();
 
-    // 2. Print exactly what was received to your computer screen
     Serial.print("Received:");
     Serial.print(inData);
     Serial.print("| Length: ");
@@ -37,10 +36,11 @@ void loop() {
 
     if (inData.length() == 5) {
       int addr = inData.substring(0, 2).toInt();
-      int subaddr = inData.substring(2, 2).toInt();
+      Serial.println(addr);
+      int subaddr = inData.substring(2, 4).toInt();
       char value = inData[4];
 
-      if (subaddr >= 0 && subaddr < num_relays) {
+      if (addr == address && subaddr >= 0 && subaddr < num_relays) {
         int targetPin = subaddr + 2;
         Serial.print("Pin ");
         Serial.print(targetPin);
@@ -56,13 +56,18 @@ void loop() {
         } else if (value == '2') {
           digitalWrite(targetPin, LOW);
           Serial.println(" Set XLOW");
+          for (int i = 2; i < num_relays; i++) {
+            if (i != targetPin) {
+              digitalWrite(i, HIGH);
+            }
+          }
         }
         
       } else {
         Serial.println("Error: Port number out of bounds.");
       }
     } else {
-      Serial.println("Error: Command ignored because length != 2");
+      Serial.println("Error: Command ignored because length != 5");
     }
   }
 }
