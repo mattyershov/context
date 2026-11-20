@@ -622,7 +622,7 @@ class RadioBackend(QObject):
         if len(subaddr) == 1:
             subaddr = '0' + str(subaddr)
 
-        self.send_rs485_data.emit(str(address) + str(subaddr) + str(value) + str(arg_num))
+        self.send_rs485_data.emit(str(address) + str(subaddr) + str(value))
 
     @Slot(int)
     def switch_ant(self, number):
