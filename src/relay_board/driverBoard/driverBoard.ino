@@ -2,8 +2,8 @@
 
 // USER-DEFINED CONSTANTS
 //-----------------------
-const int address = 0
-const int num_relays = 8
+const int address = 0;
+const int num_relays = 8;
 //-----------------------
 
 const int rxPin = 10;
@@ -36,8 +36,8 @@ void loop() {
     Serial.println(inData.length());
 
     if (inData.length() == 5) {
-      int addr = inData.substr(0, 2) - '0';
-      int subaddr = inData.substr(2, 2) - '0';
+      int addr = inData.substring(0, 2).toInt();
+      int subaddr = inData.substring(2, 2).toInt();
       char value = inData[4];
 
       if (subaddr >= 0 && subaddr < num_relays) {
@@ -54,8 +54,8 @@ void loop() {
           Serial.println(" Set LOW");
 
         } else if (value == '2') {
-          digitalWrite(targetPin, LOW)
-          Serial.println(" Set XLOW")
+          digitalWrite(targetPin, LOW);
+          Serial.println(" Set XLOW");
         }
         
       } else {

@@ -627,7 +627,7 @@ class RadioBackend(QObject):
     @Slot(int)
     def switch_ant(self, number):
         self.set_tx_ant(number)
-        self.encode_rs485(address="00", subaddr=f"0{str(number) + 1}", value="2")
+        self.encode_rs485(address="00", subaddr=f"0{str(number + 1)}", value="2")
 
 
     def antennas(self):
