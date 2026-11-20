@@ -168,7 +168,6 @@ class ShuttleProWorker(QObject):
                         self.delta = self._to_signed_8bit((current_pos - self._last_jog_pos) & 0xFF)
                         if self.delta != 0:
                             self.jog_moved.emit(self.delta)
-                            print(self.delta)
 
                     self._last_jog_pos = current_pos
 
@@ -181,10 +180,8 @@ class ShuttleProWorker(QObject):
                     if 256 <= btn_idx <= 270:
                         if event.value == 1:
                             self.button_pressed.emit([btn_idx, 1])
-                            print([btn_idx, 1])
                         elif event.value == 0:
                             self.button_pressed.emit([btn_idx, 0])
-                            print([btn_idx, 0])
         except Exception as e:
             print(f"ShuttlePro Error: {e}")
 
@@ -226,7 +223,6 @@ class RS485Worker(QObject):
                 formatted_data = data + '\n'
                 self.ser.write(formatted_data.encode('ascii'))
                 self.ser.flush()
-        
 
     @Slot()
     def stop(self):
@@ -620,11 +616,18 @@ class RadioBackend(QObject):
             case _:
                 return
 
+    def encode_rs485(self, address, subaddr, value):
+        if len(address) == 1:
+            address = '0' + str(address)
+        if len(subaddr) == 1:
+            subaddr = '0' + str(subaddr)
+
+        self.send_rs485_data.emit(str(address) + str(subaddr) + str(value) + str(arg_num))
 
     @Slot(int)
     def switch_ant(self, number):
         self.set_tx_ant(number)
-        self.send_rs485_data.emit(str(number) + '1') #TODO: Add tags to differentiate between exclusive vs. additive antenna selections
+        self.encode_rs485(address="00", subaddr=f"0{str(number) + 1}", value="2")
 
 
     def antennas(self):
@@ -636,9 +639,6 @@ class RadioBackend(QObject):
         # self.set_ant2("INOP")
         # self.set_ant3("INOP")
 
-
-
-        
 
     freq_a = Property(str, get_vfo_a, set_vfo_a, notify=freq_a_changed)
     freq_b = Property(str, get_vfo_b, set_vfo_b, notify=freq_b_changed)

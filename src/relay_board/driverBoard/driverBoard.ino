@@ -1,5 +1,11 @@
 #include <SoftwareSerial.h>
 
+// USER-DEFINED CONSTANTS
+//-----------------------
+const int address = 0
+const int num_relays = 8
+//-----------------------
+
 const int rxPin = 10;
 const int txPin = 11;
 SoftwareSerial rs485Serial(rxPin, txPin);
@@ -29,22 +35,29 @@ void loop() {
     Serial.print("| Length: ");
     Serial.println(inData.length());
 
-    if (inData.length() == 2) {
-      int port = inData[0] - '0';
-      char value = inData[1];
+    if (inData.length() == 5) {
+      int addr = inData.substr(0, 2) - '0';
+      int subaddr = inData.substr(2, 2) - '0';
+      char value = inData[4];
 
-      if (port >= 0 && port <= 7) {
-        int targetPin = port + 2;
+      if (subaddr >= 0 && subaddr < num_relays) {
+        int targetPin = subaddr + 2;
         Serial.print("Pin ");
         Serial.print(targetPin);
 
         if (value == '0') {
           digitalWrite(targetPin, HIGH);
           Serial.println("Set HIGH");
+
         } else if (value == '1') {
           digitalWrite(targetPin, LOW);
           Serial.println(" Set LOW");
+
+        } else if (value == '2') {
+          digitalWrite(targetPin, LOW)
+          Serial.println(" Set XLOW")
         }
+        
       } else {
         Serial.println("Error: Port number out of bounds.");
       }
