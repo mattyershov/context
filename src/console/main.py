@@ -653,6 +653,7 @@ class RadioBackend(QObject):
     tx_status = Property(int, get_tx_status, set_tx_status, notify=tx_status_changed)
     jog_mode = Property(int, get_jog_mode, set_jog_mode, notify=jog_mode_changed)
     jog_step = Property(int, get_jog_step, set_jog_step, notify=jog_step_changed)
+    tx_ant = Property(int, get_tx_ant, set_tx_ant, notify=tx_ant_changed)
     ant0 = Property(str, get_ant0, set_ant0, notify=ant0_changed)
     ant1 = Property(str, get_ant1, set_ant1, notify=ant1_changed)
     ant2 = Property(str, get_ant2, set_ant2, notify=ant2_changed)

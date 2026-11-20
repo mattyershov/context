@@ -286,26 +286,52 @@ Window {
 
         RowLayout {
             id: antennas
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 20
 
             Button {
                 id: ant0
-                height: 150
-                text: backend.ant0
-                font.pointSize: 14
-                onClicked: {
-                    backend.switch_ant(0)
+                Text {
+                    text: backend.ant0
+                    font.pointSize: 16
+                    color: '#ffffff'
+                    anchors.centerIn: parent
                 }
-            }
+                onClicked: {
+                        backend.switch_ant(0)
+                    }
+
+                background: Rectangle {
+                    id: ant0Content
+                    implicitHeight: 150
+                    implicitWidth: 250
+                    
+                    color: backend.tx_ant == 0 ? '#ff0000' : '#474747'
+                    
+                }
+            }   
 
             Button {
                 id: ant1
-                height: 150
-                text: backend.ant1
-                font.pointSize: 14
-                onClicked: {
-                    backend.switch_ant(1)
+                Text {
+                    text: backend.ant1
+                    font.pointSize: 16
+                    color: '#ffffff'
+                    anchors.centerIn: parent
                 }
-            }
+                onClicked: {
+                        backend.switch_ant(1)
+                    }
+
+                background: Rectangle {
+                    id: ant1Content
+                    implicitHeight: 150
+                    implicitWidth: 250
+                    
+                    color: backend.tx_ant == 1 ? '#ff0000' : '#474747'
+                    
+                }
+            }   
         }
     }
 }
