@@ -41,24 +41,27 @@ void loop() {
       char value = inData[4];
 
       if (addr == address && subaddr >= 0 && subaddr < num_relays) {
-        int targetPin = subaddr + 2;
+        int targetPin = subaddr + 1;
         Serial.print("Pin ");
         Serial.print(targetPin);
 
-        if (value == '0') {
-          digitalWrite(targetPin, HIGH);
-          Serial.println("Set HIGH");
+        if (targetPin > 2) {
 
-        } else if (value == '1') {
-          digitalWrite(targetPin, LOW);
-          Serial.println(" Set LOW");
+          if (value == '0') {
+            digitalWrite(targetPin, HIGH);
+            Serial.println("Set HIGH");
 
-        } else if (value == '2') {
-          digitalWrite(targetPin, LOW);
-          Serial.println(" Set XLOW");
-          for (int i = 2; i < num_relays; i++) {
-            if (i != targetPin) {
-              digitalWrite(i, HIGH);
+          } else if (value == '1') {
+            digitalWrite(targetPin, LOW);
+            Serial.println(" Set LOW");
+
+          } else if (value == '2') {
+            digitalWrite(targetPin, LOW);
+            Serial.println(" Set XLOW");
+            for (int i = 2; i < num_relays; i++) {
+              if (i != targetPin) {
+                digitalWrite(i, HIGH);
+              }
             }
           }
         }
