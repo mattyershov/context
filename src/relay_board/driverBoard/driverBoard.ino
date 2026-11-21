@@ -45,7 +45,7 @@ void loop() {
         Serial.print("Pin ");
         Serial.print(targetPin);
 
-        if (targetPin > 2) {
+        if (targetPin >= 1) {
 
           if (value == '0') {
             digitalWrite(targetPin, HIGH);
