@@ -272,7 +272,7 @@ class RadioBackend(QObject):
 
         self._split_count = 1
         self._jog_mode = 0
-        self._jog_steps = [5, 10, 20, 50, 100]
+        self._jog_steps = [50, 100, 200, 500]
         self._jog_step_idx = 0
 
         self._tx_ant = 0
@@ -508,7 +508,6 @@ class RadioBackend(QObject):
                     print(f"{int(new_freq * 1000):011d}")
             case _:
                 return
-            
 
     def split_macro(self, status):
         if status == 1:
@@ -554,7 +553,6 @@ class RadioBackend(QObject):
                     self.send_cmd(f"FA{int(temp_freq_b * 1000):011d}")
                     
                 self._mol_status = status
-
 
             case 265:
                 # Split Macro stages
@@ -637,7 +635,6 @@ class RadioBackend(QObject):
         self.set_tx_ant(number)
         self.encode_rs485(address="00", subaddr=f"0{str(number)}", value="2")
 
-
     def antennas(self):
         # for i in range(0, len(config["antennas"])):
         #     if self._freq_a >= config["antennas"]["lowerFreq"] and self._freq_a <= ["antennas"]["upperFreq"]:
@@ -646,7 +643,6 @@ class RadioBackend(QObject):
         self.set_ant1("Dummy Load")
         # self.set_ant2("INOP")
         # self.set_ant3("INOP")
-
 
     freq_a = Property(str, get_vfo_a, set_vfo_a, notify=freq_a_changed)
     freq_b = Property(str, get_vfo_b, set_vfo_b, notify=freq_b_changed)
