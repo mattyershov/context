@@ -35,6 +35,7 @@ class RadioWorker(QObject):
         self.ser = None
         self._lock = threading.Lock()
         self.timer = None
+        self._rx_buffer = bytearray()
 
     @Slot(str)
     def send_cmd(self, cmd):
@@ -111,13 +112,16 @@ class RadioWorker(QObject):
             print(f"Radio Serial Error: {e}")
 
     def _read_serial(self):
-        if self.ser.in_waiting > 0:
-            with self._lock:
-                byte_cmd = self.ser.read_until(b";")
-            if byte_cmd.endswith(b";"):
-                cmd_ascii = byte_cmd[:-1].decode('ascii', errors="ignore")
-                if cmd_ascii:
-                    self.parse(cmd_ascii)
+        if not self.ser or not self.ser.is_open:
+            return
+        with self._lock:
+            if self.ser.in_waiting > 0:
+                self._rx_buffer.extend(self.ser.read(waiting))
+        while b";" in self._rx_buffer:
+            cmd_bytes, _, self._rx_buffer = self._rx_buffer.partition(b";")
+            cmd_ascii = cmd_bytes.decode("ascii", errors="ignore").strip()
+            if cmd_ascii:
+                self.parse(cmd_ascii)
 
     @Slot()
     def stop(self):
@@ -479,14 +483,12 @@ class RadioBackend(QObject):
 
                     self.set_vfo_b(f"{new_freq:.3f}")
                     self.send_cmd(f"FB{int(new_freq * 1000):011d}")
-                    print(f"{int(new_freq * 1000):011d}")
 
                 elif self._rx_focus == "B":
                     new_freq = round((float(self._freq_a)) + float(tuning_step * jog_step), 3)
 
                     self.set_vfo_a(f"{new_freq:.3f}")
                     self.send_cmd(f"FA{int(new_freq * 1000):011d}")
-                    print(f"{int(new_freq * 1000):011d}")
 
             case 1: # Main VFO
                 tuning_step = self._jog_steps[self._jog_step_idx] / 1000
@@ -498,14 +500,12 @@ class RadioBackend(QObject):
 
                     self.set_vfo_a(f"{new_freq:.3f}")
                     self.send_cmd(f"FA{int(new_freq * 1000):011d}")
-                    print(f"{int(new_freq * 1000):011d}")
 
                 elif self._rx_focus == "B":
                     new_freq = round((float(self._freq_b)) + float(tuning_step * jog_step), 3)
 
                     self.set_vfo_b(f"{new_freq:.3f}")
                     self.send_cmd(f"FB{int(new_freq * 1000):011d}")
-                    print(f"{int(new_freq * 1000):011d}")
             case _:
                 return
 
@@ -575,14 +575,12 @@ class RadioBackend(QObject):
                     if self.get_rx_focus() == "A":
                         if self._mode_a == "CW":
                             self.send_cmd("MD7")
-                            print("MD7")
                         elif self._mode_a == "CW-R":
                             self.send_cmd("MD3")
 
                     elif self.get_rx_focus() == "B":
                         if self._mode_b == "CW":
                             self.send_cmd("MD7")
-                            print("MD7")
                         elif self._mode_b == "CW-R":
                             self.send_cmd("MD3")
 
