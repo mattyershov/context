@@ -116,7 +116,7 @@ class RadioWorker(QObject):
             return
         with self._lock:
             if self.ser.in_waiting > 0:
-                self._rx_buffer.extend(self.ser.read(waiting))
+                self._rx_buffer.extend(self.ser.read(self.ser.in_waiting))
         while b";" in self._rx_buffer:
             cmd_bytes, _, self._rx_buffer = self._rx_buffer.partition(b";")
             cmd_ascii = cmd_bytes.decode("ascii", errors="ignore").strip()
