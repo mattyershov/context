@@ -543,7 +543,7 @@ class RadioBackend(QObject):
                 if status == 1:
                     self.send_cmd(f"NR{(self._nr_status + 1) % 3}")
                     
-            case 267:
+            case 269:
                 # MOL
                 if self._rx_focus != self._tx_focus:
                     self.send_cmd(f"TS{status}")
@@ -562,13 +562,13 @@ class RadioBackend(QObject):
                     self.split_macro(self._split_count)
                     self._split_count += 1
 
-            case 269:
+            case 267:
                 # Cancel Split Macro
                 if status == 1:
                     self.split_macro(3)
                     self._split_count = 1
                     
-            case 261:
+            case 260:
                 # CW/CW-R
                 if status == 1:
 
@@ -583,6 +583,14 @@ class RadioBackend(QObject):
                             self.send_cmd("MD7")
                         elif self._mode_b == "CW-R":
                             self.send_cmd("MD3")
+
+            case 261:
+                # A=B
+                if status == 1:
+                    if self.get_rx_focus() == "A":
+                        self.send_cmd(f"FB{int(float(self._freq_a) * 1000):011d}")
+                    elif self.get_rx_focus() == "B":
+                        self.send_cmd(f"FA{int(float(self._freq_b) * 1000):011d}")
 
             case 270:
                 # Jog mode
