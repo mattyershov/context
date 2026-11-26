@@ -47,56 +47,63 @@ class RadioWorker(QObject):
 
 
     def parse(self, buffer):
-        match buffer[:2]:
-            case "FA":  # VFO A freq
-                freq_a = float(buffer[2:])
-                self.vfo_a_freq.emit(f"{freq_a / 1e3:.3f}")
+        if len(cmd.ascii) < 2:
+            return
 
-            case "FB":  # VFO B freq
-                freq_b = float(buffer[2:])
-                self.vfo_b_freq.emit(f"{freq_b / 1e3:.3f}")
+        try:
+            match buffer[:2]:
+                case "FA":  # VFO A freq
+                    freq_a = float(buffer[2:])
+                    self.vfo_a_freq.emit(f"{freq_a / 1e3:.3f}")
 
-            case "FR":  # RX VFO
-                if int(buffer[2:]) == 0:
-                    self.rx_focus.emit("A")
-                elif int(buffer[2:]) == 1:
-                    self.rx_focus.emit("B")
+                case "FB":  # VFO B freq
+                    freq_b = float(buffer[2:])
+                    self.vfo_b_freq.emit(f"{freq_b / 1e3:.3f}")
 
-            case "FT":  # TX VFO
-                if int(buffer[2:]) == 0:
-                    self.tx_focus.emit("A")
-                elif int(buffer[2:]) == 1:
-                    self.tx_focus.emit("B")
+                case "FR":  # RX VFO
+                    if int(buffer[2:]) == 0:
+                        self.rx_focus.emit("A")
+                    elif int(buffer[2:]) == 1:
+                        self.rx_focus.emit("B")
 
-            case "NR":  # Noise Reduction status
-                self.nr_status.emit(int(buffer[2:]))
-            
-            case "MD": # Mode (differentiation of VFO A vs. B happens later, in RadioBackend)
-                mode = ""
-                match int(buffer[2:]):
-                    case 1:
-                        mode = "LSB"
-                    case 2:
-                        mode = "USB"
-                    case 3:
-                        mode = "CW"
-                    case 7:
-                        mode = "CW-R"
-                    case _:
-                        mode = "N"
-                self.mode.emit(mode)
+                case "FT":  # TX VFO
+                    if int(buffer[2:]) == 0:
+                        self.tx_focus.emit("A")
+                    elif int(buffer[2:]) == 1:
+                        self.tx_focus.emit("B")
 
-            case "FL":
-                if int(buffer[2:]) == 0:
-                    self.fil.emit("A")
-                elif int(buffer[2:]) == 1:
-                    self.fil.emit("B")
+                case "NR":  # Noise Reduction status
+                    self.nr_status.emit(int(buffer[2:]))
+                
+                case "MD": # Mode (differentiation of VFO A vs. B happens later, in RadioBackend)
+                    mode = ""
+                    match int(buffer[2:]):
+                        case 1:
+                            mode = "LSB"
+                        case 2:
+                            mode = "USB"
+                        case 3:
+                            mode = "CW"
+                        case 7:
+                            mode = "CW-R"
+                        case _:
+                            mode = "N"
+                    self.mode.emit(mode)
 
-            case "TX":
-                self.tx_status.emit(int(buffer[2:]))
+                case "FL":
+                    if int(buffer[2:]) == 0:
+                        self.fil.emit("A")
+                    elif int(buffer[2:]) == 1:
+                        self.fil.emit("B")
 
-            case _:
-                pass
+                case "TX":
+                    self.tx_status.emit(int(buffer[2:]))
+
+                case _:
+                    pass
+
+        except ValueError:
+            pass
 
     def run(self):
         try:
@@ -117,11 +124,18 @@ class RadioWorker(QObject):
         with self._lock:
             if self.ser.in_waiting > 0:
                 self._rx_buffer.extend(self.ser.read(self.ser.in_waiting))
+        latest_cmds = {}
+        
         while b";" in self._rx_buffer:
             cmd_bytes, _, self._rx_buffer = self._rx_buffer.partition(b";")
             cmd_ascii = cmd_bytes.decode("ascii", errors="ignore").strip()
-            if cmd_ascii:
-                self.parse(cmd_ascii)
+            
+            if len(cmd_ascii) >= 2:
+                latest_cmds[cmd_ascii[:2]] = cmd_ascii
+                
+        # Only parse and emit the most recent states to the GUI
+        for cmd in latest_cmds.values():
+            self.parse(cmd)
 
     @Slot()
     def stop(self):
