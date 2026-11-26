@@ -47,7 +47,7 @@ class RadioWorker(QObject):
 
 
     def parse(self, buffer):
-        if len(cmd.ascii) < 2:
+        if len(buffer) < 2:
             return
 
         try:
